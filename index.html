@@ -4,117 +4,71 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>아침 미션 인증 앱 (홍리안 · 홍지운)</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts (Noto Sans KR) -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <!-- QRCode.js 라이브러리 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    /* Tailwind가 늦게 로드되거나 막혀도 스크롤과 기본 배치가 깨지지 않도록 안전장치 추가 */
+    * {
+      box-sizing: border-box;
+    }
     html, body {
       margin: 0;
       padding: 0;
       min-height: 100%;
       overflow-x: hidden;
-      overflow-y: auto !important;
+      overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: #FFFDF7;
       color: #1e293b;
     }
-    .photo-box {
-      aspect-ratio: 4 / 3;
-      min-height: 110px;
+
+    /* 헤더 */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background-color: #fbbf24;
+      color: #0f172a;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
-    #qrcodeBox img, #qrcodeBox canvas {
+    .header-inner {
+      max-width: 640px;
       margin: 0 auto;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
-    .hidden {
-      display: none !important;
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 900;
+      font-size: 16px;
+      white-space: nowrap;
     }
-  </style>
-</head>
-<body class="text-slate-800">
-
-  <!-- 상단 헤더 & 탭 네비게이션 -->
-  <header class="bg-amber-400 text-slate-900 shadow-sm sticky top-0 z-20">
-    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="text-2xl shrink-0">☀️</span>
-        <h1 class="font-black text-base sm:text-lg tracking-tight truncate">오늘의 아침 미션</h1>
-      </div>
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button type="button" onclick="openQrModal()" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-amber-300 hover:bg-amber-200 text-slate-900 border border-amber-500/30 transition">
-          📱 QR
-        </button>
-        <nav class="flex bg-amber-500/40 p-1 rounded-xl">
-          <button type="button" id="tabKidBtn" onclick="switchTab('kid')" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white text-amber-900 shadow-sm transition">
-            📸 사진 등록
-          </button>
-          <button type="button" id="tabAdminBtn" onclick="switchTab('admin')" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-amber-950 hover:bg-white/50 transition">
-            🔐 관리자
-          </button>
-        </nav>
-      </div>
-    </div>
-  </header>
-
-  <!-- 메인 컨테이너 -->
-  <main class="max-w-xl w-full mx-auto p-4 pb-24">
-
-    <!-- ================= 1. 아이들용 사진 등록 화면 ================= -->
-    <section id="kidView" class="space-y-5">
-      
-      <!-- 이름 및 날짜 선택 카드 -->
-      <div class="bg-white rounded-2xl p-5 shadow-sm border border-amber-100 space-y-4">
-        <div class="grid grid-cols-2 gap-3">
-          <!-- 이름 선택 (Dropdown) -->
-          <div>
-            <label for="childSelect" class="block text-xs font-bold text-slate-500 mb-1.5">👤 이름 선택</label>
-            <select id="childSelect" onchange="loadTodayStatus()" class="w-full h-12 px-3 rounded-xl border-2 border-amber-300 bg-amber-50/50 font-bold text-base text-slate-800 focus:outline-none focus:border-amber-500">
-              <option value="홍리안">홍리안</option>
-              <option value="홍지운">홍지운</option>
-            </select>
-          </div>
-
-          <!-- 날짜 (오늘 날짜로 고정, 수정 불가) -->
-          <div>
-            <label for="todayDateInput" class="block text-xs font-bold text-slate-500 mb-1.5">📅 오늘 날짜 (고정)</label>
-            <input id="todayDateInput" type="text" readonly disabled
-              class="w-full h-12 px-3 rounded-xl border-2 border-slate-200 bg-slate-100 font-bold text-base text-slate-500 cursor-not-allowed select-none" />
-          </div>
-        </div>
-        <div id="todayStatusBadge" class="text-xs font-medium text-amber-700 bg-amber-50 px-3 py-2 rounded-lg text-center">
-          오늘 날짜를 확인하고 있어요.
-        </div>
-      </div>
-
-      <!-- 미션 1: 밥 사진 -->
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-orange-100">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-extrabold text-base text-orange-600 flex items-center gap-1.5">
-            <span>🍚</span> 1. 아침밥 다 먹었어요!
-          </h2>
-          <span id="mealBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-400">미등록</span>
-        </div>
-
-        <div class="grid grid-cols-12 gap-3 items-center">
-          <!-- 왼쪽: 카메라 실행 버튼 -->
-          <div class="col-span-5">
-            <label for="mealCameraInput" class="flex flex-col items-center justify-center w-full photo-box bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl cursor-pointer shadow-md transition p-2 text-center">
-              <svg class="w-9 h-9 mb-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
-              <span class="font-extrabold text-sm leading-tight">밥 사진<br>찍기</span>
-            </label>
-            <input id="mealCameraInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoCapture(event, 'meal')" />
-          </div>
-
-          <!-- 오른쪽: 촬영된 이미지가 채워지는 영역 (사진 클릭 시 확대) -->
-          <div class="col-span-7">
-            <div id="mealBox" onclick="previewKidPhoto('meal')" class="w-full photo-box rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/40 overflow-hidden flex items-center justify-center relative transition">
-              <img id="mealPreview" src="" alt="아침밥 사진" class="hidden w-full h-full object-cover" />
-              <span id="mealZoomHint" class="hidden absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md pointer-events-none">🔍 클릭해 확대</span>
-              <div id="mealPlaceholder" class="text-center p-3 text
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .qr-btn {
+      border: 1px solid rgba(180, 83, 9, 0.35);
+      background-color: #fde68a;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .nav-group {
+      display: flex;
+      background-color: rgba(217, 119, 6, 0.35);
+      padding: 3px;
+      border-radius: 12px;
+      gap: 3px;
+    }
+    .nav-btn {
+      border: none
