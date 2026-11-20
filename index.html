@@ -3,72 +3,531 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>아침 미션 인증 앱 (홍리안 · 홍지운)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <title>오늘의 아침 미션</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-    html, body {
+    * { box-sizing: border-box; }
+    body {
       margin: 0;
-      padding: 0;
-      min-height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #FFFDF7;
+      padding: 0 0 80px 0;
+      font-family: sans-serif;
+      background: #FFFDF7;
       color: #1e293b;
     }
-
-    /* 헤더 */
-    .app-header {
+    header {
       position: sticky;
       top: 0;
-      z-index: 30;
-      background-color: #fbbf24;
-      color: #0f172a;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    }
-    .header-inner {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 10px 14px;
+      z-index: 20;
+      background: #fbbf24;
+      padding: 12px 14px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .brand-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 900;
-      font-size: 16px;
-      white-space: nowrap;
-    }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .qr-btn {
-      border: 1px solid rgba(180, 83, 9, 0.35);
-      background-color: #fde68a;
-      color: #0f172a;
+    .title { font-weight: 900; font-size: 16px; }
+    .btns { display: flex; gap: 6px; }
+    .btn-tab {
+      border: none;
+      padding: 8px 10px;
+      border-radius: 10px;
       font-weight: 800;
       font-size: 12px;
-      padding: 7px 10px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.45);
+      color: #451a03;
+    }
+    .btn-tab.active {
+      background: #ffffff;
+      color: #78350f;
+    }
+    main {
+      max-width: 600px;
+      margin: 14px auto;
+      padding: 0 14px;
+    }
+    .box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    label.lbl {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 5px;
+    }
+    select, input[type="text"], input[type="date"], input[type="password"] {
+      width: 100%;
+      height: 42px;
       border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      padding: 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    input:disabled {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    .status {
+      margin-top: 10px;
+      background: #fffbeb;
+      color: #b45309;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .mission-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-weight: 900;
+      font-size: 15px;
+    }
+    .mission-grid {
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .cam-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 120px;
+      border-radius: 14px;
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      text-align: center;
       cursor: pointer;
     }
-    .nav-group {
+    .cam-meal { background: #f97316; }
+    .cam-study { background: #0ea5e9; }
+    .preview-box {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      border-radius: 14px;
+      border: 2px dashed #cbd5e1;
+      background: #f8fafc;
       display: flex;
-      background-color: rgba(217, 119, 6, 0.35);
-      padding: 3px;
-      border-radius: 12px;
-      gap: 3px;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
     }
-    .nav-btn {
-      border: none
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .save-btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: #10b981;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .del-btn {
+      border: 1px solid #fecdd3;
+      background: #fff1f2;
+      color: #e11d48;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .chip {
+      display: inline-block;
+      background: #fef3c7;
+      color: #78350f;
+      border: none;
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 4px 4px 0 0;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-inner {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 560px;
+      width: 100%;
+      overflow: hidden;
+      padding: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title">☀️ 오늘의 아침 미션</div>
+    <div class="btns">
+      <button type="button" class="btn-tab" onclick="showQr()">📱 QR</button>
+      <button type="button" id="btnKid" class="btn-tab active" onclick="showTab('kid')">📸 사진 등록</button>
+      <button type="button" id="btnAdmin" class="btn-tab" onclick="showTab('admin')">🔐 관리자</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 아이들 화면 -->
+    <div id="kidSection">
+      <div class="box">
+        <div class="row2">
+          <div>
+            <label class="lbl">👤 이름</label>
+            <select id="childSelect" onchange="loadToday()">
+              <option value="홍리안">홍리안</option>
+              <option value="홍지운">홍지운</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">📅 오늘 날짜 (수정불가)</label>
+            <input id="todayInput" type="text" readonly disabled />
+          </div>
+        </div>
+        <div id="statusMsg" class="status">오늘 날짜를 확인 중...</div>
+      </div>
+
+      <!-- 1. 밥 사진 -->
+      <div class="box">
+        <div class="mission-top">
+          <span style="color:#ea580c;">🍚 1. 아침밥 다 먹었어요!</span>
+          <span id="mealState" style="font-size:12px; color:#94a3b8;">미등록</span>
+        </div>
+        <div class="mission-grid">
+          <label for="mealFile" class="cam-btn cam-meal">
+            <span style="font-size:26px;">📷</span>
+            <span>밥 사진 찍기</span>
+          </label>
+          <input id="mealFile" type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPickPhoto(event, 'meal')" />
+
+          <div class="preview-box" onclick="openBigPhoto('meal')">
+            <img id="mealImg" alt="밥 사진" />
+            <span id="mealHint" style="font-size:12px; color:#94a3b8; text-align:center;">버튼을 눌러<br>사진을 찍어주세요</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 아침 공부 사진 -->
+      <div class="box">
+        <div class="mission-top">
+          <span style="color:#0284c7;">✏️ 2. 아침 공부 다 했어요!</span>
+          <span id="studyState" style="font-size:12px; color:#94a3b8;">미등록</span>
+        </div>
+        <div class="mission-grid">
+          <label for="studyFile" class="cam-btn cam-study">
+            <span style="font-size:26px;">📷</span>
+            <span>공부 사진 찍기</span>
+          </label>
+          <input id="studyFile" type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPickPhoto(event, 'study')" />
+
+          <div class="preview-box" onclick="openBigPhoto('study')">
+            <img id="studyImg" alt="공부 사진" />
+            <span id="studyHint" style="font-size:12px; color:#94a3b8; text-align:center;">버튼을 눌러<br>사진을 찍어주세요</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="save-btn" onclick="savePhotos()">✅ 사진 올리기 (저장하기)</button>
+    </div>
+
+    <!-- 관리자 화면 -->
+    <div id="adminSection" style="display:none;">
+      <div id="lockCard" class="box" style="text-align:center;">
+        <div style="font-size:28px; margin-bottom:8px;">🔒</div>
+        <div style="font-weight:900; font-size:16px;">관리자 로그인</div>
+        <div style="font-size:12px; color:#64748b; margin:4px 0 12px 0;">비밀번호: 1234</div>
+        <div style="display:flex; gap:8px; max-width:260px; margin:0 auto;">
+          <input id="pwInput" type="password" inputmode="numeric" placeholder="1234" />
+          <button type="button" onclick="checkPw()" style="padding:0 16px; border:none; border-radius:10px; background:#1e293b; color:#fff; font-weight:800; cursor:pointer;">확인</button>
+        </div>
+      </div>
+
+      <div id="dashCard" style="display:none;">
+        <div class="box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <label class="lbl" style="margin:0;">📅 날짜 선택</label>
+            <button type="button" class="del-btn" onclick="deleteSelectedDate()">🗑️ 이 날짜 전체 삭제</button>
+          </div>
+          <input id="adminDate" type="date" onchange="loadAdminDate(this.value)" />
+          <div id="dateChips" style="margin-top:8px;"></div>
+        </div>
+        <div id="adminList"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 확대 / QR 모달 -->
+  <div id="popModal" class="modal" onclick="closePop()">
+    <div class="modal-inner" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong id="popTitle">미리보기</strong>
+        <button type="button" onclick="closePop()" style="border:none; background:none; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <div id="popBody" style="text-align:center;"></div>
+    </div>
+  </div>
+
+  <script>
+    const KIDS = ["홍리안", "홍지운"];
+    let mealData = null;
+    let studyData = null;
+    let adminOpen = false;
+
+    function getToday() {
+      const d = new Date();
+      const off = d.getTimezoneOffset() * 60000;
+      return new Date(d - off).toISOString().slice(0, 10);
+    }
+    const TODAY = getToday();
+    document.getElementById("todayInput").value = TODAY;
+    document.getElementById("adminDate").value = TODAY;
+    document.getElementById("statusMsg").textContent = "👋 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
+
+    function showTab(tab) {
+      const isKid = tab === "kid";
+      document.getElementById("kidSection").style.display = isKid ? "block" : "none";
+      document.getElementById("adminSection").style.display = isKid ? "none" : "block";
+      document.getElementById("btnKid").classList.toggle("active", isKid);
+      document.getElementById("btnAdmin").classList.toggle("active", !isKid);
+      if (isKid && window.fbLoadToday) window.fbLoadToday();
+      if (!isKid && adminOpen && window.fbLoadAdmin) window.fbLoadAdmin();
+      window.scrollTo(0, 0);
+    }
+
+    function showQr() {
+      const url = window.location.href;
+      const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(url);
+      document.getElementById("popTitle").textContent = "📱 아이들 폰 연결 QR코드";
+      document.getElementById("popBody").innerHTML =
+        "<p style='font-size:12px; color:#64748b;'>카메라로 비추면 바로 열립니다.</p>" +
+        "<img src='" + qrApi + "' alt='QR' style='width:200px; height:200px; margin:8px auto; display:block;' />" +
+        "<div style='font-size:11px; color:#64748b; word-break:break-all;'>" + url + "</div>";
+      document.getElementById("popModal").style.display = "flex";
+    }
+
+    function openBigPhoto(type) {
+      const src = type === "meal" ? mealData : studyData;
+      if (!src) return;
+      const name = document.getElementById("childSelect").value;
+      document.getElementById("popTitle").textContent = TODAY + " " + name + (type === "meal" ? " - 밥 사진" : " - 공부 사진");
+      document.getElementById("popBody").innerHTML = "<img src='" + src + "' style='max-width:100%; max-height:70vh; object-fit:contain;' />";
+      document.getElementById("popModal").style.display = "flex";
+    }
+
+    function closePop() {
+      document.getElementById("popModal").style.display = "none";
+    }
+
+    function compress(file, cb) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          let w = img.width, h = img.height;
+          if (w > 800) { h = Math.round(h * 800 / w); w = 800; }
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          cb(c.toDataURL("image/jpeg", 0.72));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function onPickPhoto(ev, type) {
+      const file = ev.target.files[0];
+      if (!file) return;
+      compress(file, function(b64) {
+        if (type === "meal") { mealData = b64; setPreview("meal", b64, "준비됨"); }
+        else { studyData = b64; setPreview("study", b64, "준비됨"); }
+        ev.target.value = "";
+      });
+    }
+
+    function setPreview(type, b64, text) {
+      const img = document.getElementById(type === "meal" ? "mealImg" : "studyImg");
+      const hint = document.getElementById(type === "meal" ? "mealHint" : "studyHint");
+      const st = document.getElementById(type === "meal" ? "mealState" : "studyState");
+      if (b64) {
+        img.src = b64;
+        img.style.display = "block";
+        hint.style.display = "none";
+        st.textContent = text || "저장됨";
+        st.style.color = "#15803d";
+      } else {
+        img.src = "";
+        img.style.display = "none";
+        hint.style.display = "block";
+        st.textContent = "미등록";
+        st.style.color = "#94a3b8";
+      }
+    }
+
+    function loadToday() {
+      mealData = null; studyData = null;
+      setPreview("meal", null); setPreview("study", null);
+      if (window.fbLoadToday) window.fbLoadToday();
+    }
+
+    function savePhotos() {
+      if (!mealData && !studyData) return alert("밥 사진 또는 공부 사진을 찍어주세요!");
+      if (window.fbSave) window.fbSave();
+      else alert("Firebase 연결을 확인해주세요.");
+    }
+
+    function checkPw() {
+      if (document.getElementById("pwInput").value === "1234") {
+        adminOpen = true;
+        document.getElementById("lockCard").style.display = "none";
+        document.getElementById("dashCard").style.display = "block";
+        if (window.fbLoadAdmin) window.fbLoadAdmin();
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function loadAdminDate(d) {
+      if (window.fbLoadAdminDate) window.fbLoadAdminDate(d);
+    }
+
+    function deleteSelectedDate() {
+      if (window.fbDeleteDate) window.fbDeleteDate();
+    }
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBA_SgB4qFaT5X_aUxpyHjqG5VIYD2KgQw",
+      authDomain: "morning-mission-2c6ea.firebaseapp.com",
+      projectId: "morning-mission-2c6ea",
+      storageBucket: "morning-mission-2c6ea.firebasestorage.app",
+      messagingSenderId: "338264773151",
+      appId: "1:338264773151:web:f590cd987772de5ff1bb2a",
+      measurementId: "G-5RFF32328E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.fbLoadToday = async function() {
+      const name = document.getElementById("childSelect").value;
+      try {
+        const snap = await getDoc(doc(db, "morning_missions", TODAY + "_" + name));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.mealPhoto) { mealData = d.mealPhoto; setPreview("meal", d.mealPhoto, "저장됨"); }
+          if (d.studyPhoto) { studyData = d.studyPhoto; setPreview("study", d.studyPhoto, "저장됨"); }
+          document.getElementById("statusMsg").textContent = "✨ 오늘(" + TODAY + ") 저장된 사진이 있어요! 사진을 누르면 크게 보여요.";
+        } else {
+          document.getElementById("statusMsg").textContent = "👋 안녕 " + name + "! 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
+        }
+      } catch (e) { console.error(e); }
+    };
+
+    window.fbSave = async function() {
+      const name = document.getElementById("childSelect").value;
+      try {
+        await setDoc(doc(db, "morning_missions", TODAY + "_" + name), {
+          date: TODAY, childName: name,
+          mealPhoto: mealData || null, studyPhoto: studyData || null,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        if (mealData) document.getElementById("mealState").textContent = "저장됨";
+        if (studyData) document.getElementById("studyState").textContent = "저장됨";
+        alert(name + "의 사진이 저장되었습니다!");
+      } catch (e) { alert("저장 오류: " + e.message); }
+    };
+
+    window.fbLoadAdmin = async function() {
+      const d = document.getElementById("adminDate").value || TODAY;
+      const qs = await getDocs(collection(db, "morning_missions"));
+      const set = new Set();
+      qs.forEach(s => { if (s.data().date) set.add(s.data().date); });
+      const dates = Array.from(set).sort().reverse();
+      document.getElementById("dateChips").innerHTML = dates.length
+        ? dates.map(dt => "<button type='button' class='chip' onclick=\"document.getElementById('adminDate').value='" + dt + "'; fbLoadAdminDate('" + dt + "');\">" + dt + "</button>").join("")
+        : "<span style='font-size:12px; color:#94a3b8;'>기록 없음</span>";
+      await window.fbLoadAdminDate(d);
+    };
+
+    window.fbLoadAdminDate = async function(dateStr) {
+      if (!dateStr) return;
+      let html = "";
+      for (const name of KIDS) {
+        const snap = await getDoc(doc(db, "morning_missions", dateStr + "_" + name));
+        const d = snap.exists() ? snap.data() : null;
+        html += "<div class='box'><div style='display:flex; justify-content:space-between; margin-bottom:10px;'>";
+        html += "<strong style='background:#fbbf24; padding:3px 9px; border-radius:8px;'>" + name + "</strong>";
+        if (d) html += "<button type='button' class='del-btn' onclick=\"fbDelOne('" + dateStr + "','" + name + "')\">삭제</button>";
+        html += "</div><div class='row2'>";
+        html += "<div><div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 밥 사진</div>";
+        html += d && d.mealPhoto ? "<img src='" + d.mealPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 밥','" + d.mealPhoto + "')\" style='width:100%; height:110px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:110px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>없음</div>";
+        html += "</div><div><div style='font-size:12px; font-weight:800; color:#0284c7; margin-bottom:4px;'>✏️ 공부 사진</div>";
+        html += d && d.studyPhoto ? "<img src='" + d.studyPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 공부','" + d.studyPhoto + "')\" style='width:100%; height:110px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:110px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>없음</div>";
+        html += "</div></div></div>";
+      }
+      document.getElementById("adminList").innerHTML = html;
+    };
+
+    window.openAdminImg = function(title, src) {
+      document.getElementById("popTitle").textContent = title;
+      document.getElementById("popBody").innerHTML = "<img src='" + src + "' style='max-width:100%; max-height:70vh; object-fit:contain;' />";
+      document.getElementById("popModal").style.display = "flex";
+    };
+
+    window.fbDelOne = async function(dateStr, name) {
+      if (!confirm(dateStr + " " + name + " 사진을 삭제할까요?")) return;
+      await deleteDoc(doc(db, "morning_missions", dateStr + "_" + name));
+      await window.fbLoadAdmin();
+    };
+
+    window.fbDeleteDate = async function() {
+      const dateStr = document.getElementById("adminDate").value;
+      if (!dateStr || !confirm(dateStr + " 날짜 사진을 모두 삭제할까요?")) return;
+      for (const name of KIDS) await deleteDoc(doc(db, "morning_missions", dateStr + "_" + name));
+      alert("삭제되었습니다.");
+      await window.fbLoadAdmin();
+    };
+
+    window.fbLoadToday();
+  </script>
+</body>
+</html>
