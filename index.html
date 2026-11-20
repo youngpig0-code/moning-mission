@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts (Noto Sans KR) -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- QRCode.js 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
@@ -17,25 +19,33 @@
     .photo-box {
       aspect-ratio: 4 / 3;
     }
+    #qrcodeBox img, #qrcodeBox canvas {
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col">
 
   <!-- 상단 헤더 & 탭 네비게이션 -->
   <header class="bg-amber-400 text-slate-900 shadow-sm sticky top-0 z-20">
-    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl">☀️</span>
-        <h1 class="font-black text-lg tracking-tight">오늘의 아침 미션</h1>
+    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-2xl shrink-0">☀️</span>
+        <h1 class="font-black text-base sm:text-lg tracking-tight truncate">오늘의 아침 미션</h1>
       </div>
-      <nav class="flex bg-amber-500/40 p-1 rounded-xl">
-        <button id="tabKidBtn" onclick="switchTab('kid')" class="px-3 py-1.5 rounded-lg text-sm font-bold bg-white text-amber-900 shadow-sm transition">
-          📸 사진 등록
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="openQrModal()" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-amber-300 hover:bg-amber-200 text-slate-900 border border-amber-500/30 transition">
+          📱 QR
         </button>
-        <button id="tabAdminBtn" onclick="switchTab('admin')" class="px-3 py-1.5 rounded-lg text-sm font-bold text-amber-950 hover:bg-white/50 transition">
-          🔐 관리자
-        </button>
-      </nav>
+        <nav class="flex bg-amber-500/40 p-1 rounded-xl">
+          <button id="tabKidBtn" onclick="switchTab('kid')" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white text-amber-900 shadow-sm transition">
+            📸 사진 등록
+          </button>
+          <button id="tabAdminBtn" onclick="switchTab('admin')" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-amber-950 hover:bg-white/50 transition">
+            🔐 관리자
+          </button>
+        </nav>
+      </div>
     </div>
   </header>
 
@@ -196,6 +206,25 @@
 
   </main>
 
+  <!-- QR코드 팝업 모달 -->
+  <div id="qrModal" onclick="closeQrModal()" class="hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+    <div class="max-w-sm w-full bg-white rounded-3xl p-6 shadow-2xl text-center space-y-4" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between">
+        <span class="font-black text-base text-slate-800">📱 아이들 폰 연결 QR코드</span>
+        <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg px-2">✕</button>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        아이들 휴대폰 카메라로 아래 QR코드를 비추면<br>
+        <strong>오늘의 아침 미션</strong> 페이지로 바로 연결됩니다.
+      </p>
+      <div id="qrcodeBox" class="p-4 bg-white border-2 border-amber-200 rounded-2xl inline-block mx-auto"></div>
+      <div class="bg-slate-50 rounded-xl p-2.5 text-[11px] text-slate-500 break-all select-all" id="qrUrlText"></div>
+      <button onclick="closeQrModal()" class="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-500 font-extrabold text-sm text-slate-900 transition">
+        닫기
+      </button>
+    </div>
+  </div>
+
   <!-- 사진 크게 보기 모달 -->
   <div id="imageModal" onclick="closeModal()" class="hidden fixed inset-0 bg-black/85 z-50 flex flex-col items-center justify-center p-4">
     <div class="max-w-2xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
@@ -244,6 +273,7 @@
     let currentMealBase64 = null;
     let currentStudyBase64 = null;
     let isAdminUnlocked = false;
+    let qrGenerated = false;
 
     // 한국 시간(KST) 기준 오늘 날짜 YYYY-MM-DD 반환
     function getTodayString() {
@@ -262,6 +292,34 @@
       loadTodayStatus();
     });
 
+    // QR코드 모달 열기/닫기
+    window.openQrModal = function() {
+      const modal = document.getElementById("qrModal");
+      const box = document.getElementById("qrcodeBox");
+      const urlText = document.getElementById("qrUrlText");
+      const currentUrl = window.location.href;
+
+      urlText.textContent = currentUrl;
+      modal.classList.remove("hidden");
+
+      if (!qrGenerated && typeof QRCode !== "undefined") {
+        box.innerHTML = "";
+        new QRCode(box, {
+          text: currentUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#0f172a",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        qrGenerated = true;
+      }
+    };
+
+    window.closeQrModal = function() {
+      document.getElementById("qrModal").classList.add("hidden");
+    };
+
     // 탭 전환
     window.switchTab = function(tab) {
       const kidView = document.getElementById("kidView");
@@ -272,14 +330,14 @@
       if (tab === "kid") {
         kidView.classList.remove("hidden");
         adminView.classList.add("hidden");
-        tabKidBtn.className = "px-3 py-1.5 rounded-lg text-sm font-bold bg-white text-amber-900 shadow-sm transition";
-        tabAdminBtn.className = "px-3 py-1.5 rounded-lg text-sm font-bold text-amber-950 hover:bg-white/50 transition";
+        tabKidBtn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white text-amber-900 shadow-sm transition";
+        tabAdminBtn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-amber-950 hover:bg-white/50 transition";
         loadTodayStatus();
       } else {
         kidView.classList.add("hidden");
         adminView.classList.remove("hidden");
-        tabAdminBtn.className = "px-3 py-1.5 rounded-lg text-sm font-bold bg-white text-amber-900 shadow-sm transition";
-        tabKidBtn.className = "px-3 py-1.5 rounded-lg text-sm font-bold text-amber-950 hover:bg-white/50 transition";
+        tabAdminBtn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white text-amber-900 shadow-sm transition";
+        tabKidBtn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold text-amber-950 hover:bg-white/50 transition";
         if (isAdminUnlocked) {
           refreshAdminView();
         }
