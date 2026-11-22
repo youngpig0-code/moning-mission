@@ -426,9 +426,6 @@
     let studyData = null;
     let adminOpen = false;
 
-    // 날짜별 사진 존재 여부 및 정산 상태 캐시
-    // photoDatesMap: { "2026-11-22": true, ... }
-    // settlementMap: { "2026-11-22": true/false, ... }
     let photoDatesMap = {};
     let settlementMap = {};
 
@@ -443,7 +440,7 @@
     document.getElementById("statusMsg").textContent = "👋 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
 
     let calYear = parseInt(TODAY.slice(0, 4), 10);
-    let calMonth = parseInt(TODAY.slice(5, 7), 10) - 1; // 0~11
+    let calMonth = parseInt(TODAY.slice(5, 7), 10) - 1;
 
     function pad2(n) {
       return n < 10 ? "0" + n : "" + n;
@@ -491,7 +488,6 @@
         const isSelected = ds === selectedDate;
 
         if (!hasPhoto) {
-          // 사진이 올라가지 않은 날짜는 표시하지 않음(빈 칸/비활성 처리)
           html += "<div class='cal-cell no-photo'></div>";
         } else {
           const tagClass = isSettled ? "settled" : "unsettled";
@@ -547,6 +543,7 @@
       window.scrollTo(0, 0);
     }
 
+    // 단일 QR코드 (현재 페이지 URL 그대로 사용)
     function showQr() {
       const url = window.location.href;
       const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(url);
@@ -623,10 +620,83 @@
       if (window.fbLoadToday) window.fbLoadToday();
     }
 
-    function savePhotos() {
+    // Face ID (패스키 / WebAuthn) 인증 팝업 호출
+    async function verifyFaceIdPasskey(kidName) {
+      if (!window.PublicKeyCredential || !navigator.credentials) {
+        return confirm("이 브라우저에서는 Face ID 팝업을 직접 띄울 수 없습니다. " + kidName + "의 사진을 저장할까요?");
+      }
+
+      const credIdKey = "morning_passkey_cred_id_" + kidName;
+      const savedCredIdB64 = localStorage.getItem(credIdKey);
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+
+      const rpId = window.location.hostname || "localhost";
+
+      try {
+        if (!savedCredIdB64) {
+          // 최초 1회 패스키(Face ID) 생성 팝업
+          const createRes = await navigator.credentials.create({
+            publicKey: {
+              challenge: challenge,
+              rp: { name: "오늘의 아침 미션", id: rpId },
+              user: {
+                id: new TextEncoder().encode("kid_" + kidName),
+                name: kidName + "@morning-mission.local",
+                displayName: kidName
+              },
+              pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+              authenticatorSelection: {
+                authenticatorAttachment: "platform",
+                userVerification: "required"
+              },
+              timeout: 60000
+            }
+          });
+          if (createRes && createRes.rawId) {
+            const bytes = new Uint8Array(createRes.rawId);
+            let bin = "";
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            localStorage.setItem(credIdKey, btoa(bin));
+          }
+          return true;
+        } else {
+          // 기존 패스키(Face ID) 인증 팝업
+          const bin = atob(savedCredIdB64);
+          const rawId = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) rawId[i] = bin.charCodeAt(i);
+
+          const authRes = await navigator.credentials.get({
+            publicKey: {
+              challenge: challenge,
+              rpId: rpId,
+              allowCredentials: [{ id: rawId, type: "public-key" }],
+              userVerification: "required",
+              timeout: 60000
+            }
+          });
+          return !!authRes;
+        }
+      } catch (err) {
+        // 사용자가 Face ID 팝업을 취소하거나 실패한 경우
+        if (err && err.name === "NotAllowedError") {
+          alert("Face ID 인증이 취소되었거나 실패했습니다. 다시 시도해주세요.");
+          return false;
+        }
+        // 환경 제한 등으로 패스키 호출 자체가 막힌 경우 대안 확인
+        return confirm("Face ID 인증 팝업이 표시되지 않았습니다(" + (err && err.name ? err.name : "오류") + "). 그래도 사진을 저장할까요?");
+      }
+    }
+
+    async function savePhotos() {
       if (!mealData && !studyData) return alert("밥 사진 또는 공부 사진을 찍어주세요!");
-      if (window.fbSave) window.fbSave();
-      else alert("Firebase 연결을 확인해주세요.");
+      if (!window.fbSave) return alert("Firebase 연결을 확인해주세요.");
+
+      const kidName = document.getElementById("childSelect").value;
+      const ok = await verifyFaceIdPasskey(kidName);
+      if (!ok) return;
+
+      window.fbSave();
     }
 
     function checkPw() {
@@ -694,7 +764,6 @@
           updatedAt: new Date().toISOString()
         }, { merge: true });
 
-        // 사진이 등록된 날의 정산 문서가 없으면 미정산(settled: false)으로 초기화
         const settleRef = doc(db, "allowance_settlements", TODAY);
         const settleSnap = await getDoc(settleRef);
         if (!settleSnap.exists()) {
@@ -727,7 +796,6 @@
         }
       });
 
-      // 사진이 올라간 날짜는 기본 미정산(false)으로 보장
       Object.keys(photoDatesMap).forEach(dt => {
         if (typeof settlementMap[dt] === "undefined") {
           settlementMap[dt] = false;
