@@ -288,6 +288,91 @@
       overflow: hidden;
       padding: 14px;
     }
+
+    /* 귀여운 로딩 바 오버레이 (다른 버튼 클릭 차단) */
+    .cute-loading-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(255, 253, 247, 0.78);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      touch-action: none;
+    }
+    .cute-loading-card {
+      width: 100%;
+      max-width: 320px;
+      background: #ffffff;
+      border: 3px solid #fbbf24;
+      border-radius: 26px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 14px 32px rgba(245, 158, 11, 0.25);
+    }
+    .cute-bounce-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .cute-bounce-row span:nth-child(1) {
+      animation: cuteHop 0.9s infinite ease-in-out 0s;
+    }
+    .cute-bounce-row span:nth-child(2) {
+      animation: cuteHop 0.9s infinite ease-in-out 0.18s;
+    }
+    .cute-bounce-row span:nth-child(3) {
+      animation: cuteHop 0.9s infinite ease-in-out 0.36s;
+    }
+    @keyframes cuteHop {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-9px) scale(1.12); }
+    }
+    .cute-loading-title {
+      font-weight: 900;
+      font-size: 16px;
+      color: #78350f;
+      margin-bottom: 4px;
+    }
+    .cute-loading-sub {
+      font-size: 12px;
+      font-weight: 700;
+      color: #b45309;
+      margin-bottom: 14px;
+    }
+    .cute-bar-track {
+      position: relative;
+      width: 100%;
+      height: 18px;
+      background: #fef3c7;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid #fde68a;
+    }
+    .cute-bar-fill {
+      position: absolute;
+      top: 0;
+      left: -45%;
+      width: 45%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #fb923c, #fbbf24, #34d399, #38bdf8);
+      animation: cuteSlideBar 1.25s infinite ease-in-out;
+    }
+    @keyframes cuteSlideBar {
+      0% { left: -45%; }
+      100% { left: 100%; }
+    }
+    .cute-loading-hint {
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
   </style>
 </head>
 <body>
@@ -420,14 +505,44 @@
     </div>
   </div>
 
+  <!-- 귀여운 로딩 바 모달 -->
+  <div id="cuteLoadingModal" class="cute-loading-backdrop" aria-live="polite" aria-busy="true">
+    <div class="cute-loading-card">
+      <div class="cute-bounce-row">
+        <span>🍚</span>
+        <span>✏️</span>
+        <span>🌟</span>
+      </div>
+      <div id="cuteLoadingTitle" class="cute-loading-title">사진을 쏙쏙 올리는 중!</div>
+      <div id="cuteLoadingSub" class="cute-loading-sub">조금만 기다려 주세요~</div>
+      <div class="cute-bar-track">
+        <div class="cute-bar-fill"></div>
+      </div>
+      <div class="cute-loading-hint">저장이 끝날 때까지 화면을 터치하지 마세요</div>
+    </div>
+  </div>
+
   <script>
     const KIDS = ["홍리안", "홍지운"];
     let mealData = null;
     let studyData = null;
     let adminOpen = false;
+    let isSavingLock = false;
 
     let photoDatesMap = {};
     let settlementMap = {};
+
+    function showCuteLoading(kidName) {
+      isSavingLock = true;
+      document.getElementById("cuteLoadingTitle").textContent = (kidName ? kidName + "의 " : "") + "사진을 쏙쏙 올리는 중!";
+      document.getElementById("cuteLoadingSub").textContent = "참 잘했어요! 조금만 기다려 주세요~";
+      document.getElementById("cuteLoadingModal").style.display = "flex";
+    }
+
+    function hideCuteLoading() {
+      isSavingLock = false;
+      document.getElementById("cuteLoadingModal").style.display = "none";
+    }
 
     function getToday() {
       const d = new Date();
@@ -533,6 +648,7 @@
     }
 
     function showTab(tab) {
+      if (isSavingLock) return;
       const isKid = tab === "kid";
       document.getElementById("kidSection").style.display = isKid ? "block" : "none";
       document.getElementById("adminSection").style.display = isKid ? "none" : "block";
@@ -543,8 +659,8 @@
       window.scrollTo(0, 0);
     }
 
-    // 단일 QR코드 (현재 페이지 URL 그대로 사용)
     function showQr() {
+      if (isSavingLock) return;
       const url = window.location.href;
       const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(url);
       document.getElementById("popTitle").textContent = "📱 아이들 폰 연결 QR코드";
@@ -556,6 +672,7 @@
     }
 
     function openBigPhoto(type) {
+      if (isSavingLock) return;
       const src = type === "meal" ? mealData : studyData;
       if (!src) return;
       const name = document.getElementById("childSelect").value;
@@ -586,6 +703,7 @@
     }
 
     function onPickPhoto(ev, type) {
+      if (isSavingLock) return;
       const file = ev.target.files[0];
       if (!file) return;
       compress(file, function(b64) {
@@ -615,12 +733,12 @@
     }
 
     function loadToday() {
+      if (isSavingLock) return;
       mealData = null; studyData = null;
       setPreview("meal", null); setPreview("study", null);
       if (window.fbLoadToday) window.fbLoadToday();
     }
 
-    // Face ID (패스키 / WebAuthn) 인증 팝업 호출
     async function verifyFaceIdPasskey(kidName) {
       if (!window.PublicKeyCredential || !navigator.credentials) {
         return confirm("이 브라우저에서는 Face ID 팝업을 직접 띄울 수 없습니다. " + kidName + "의 사진을 저장할까요?");
@@ -635,7 +753,6 @@
 
       try {
         if (!savedCredIdB64) {
-          // 최초 1회 패스키(Face ID) 생성 팝업
           const createRes = await navigator.credentials.create({
             publicKey: {
               challenge: challenge,
@@ -661,7 +778,6 @@
           }
           return true;
         } else {
-          // 기존 패스키(Face ID) 인증 팝업
           const bin = atob(savedCredIdB64);
           const rawId = new Uint8Array(bin.length);
           for (let i = 0; i < bin.length; i++) rawId[i] = bin.charCodeAt(i);
@@ -678,17 +794,16 @@
           return !!authRes;
         }
       } catch (err) {
-        // 사용자가 Face ID 팝업을 취소하거나 실패한 경우
         if (err && err.name === "NotAllowedError") {
           alert("Face ID 인증이 취소되었거나 실패했습니다. 다시 시도해주세요.");
           return false;
         }
-        // 환경 제한 등으로 패스키 호출 자체가 막힌 경우 대안 확인
         return confirm("Face ID 인증 팝업이 표시되지 않았습니다(" + (err && err.name ? err.name : "오류") + "). 그래도 사진을 저장할까요?");
       }
     }
 
     async function savePhotos() {
+      if (isSavingLock) return;
       if (!mealData && !studyData) return alert("밥 사진 또는 공부 사진을 찍어주세요!");
       if (!window.fbSave) return alert("Firebase 연결을 확인해주세요.");
 
@@ -696,7 +811,12 @@
       const ok = await verifyFaceIdPasskey(kidName);
       if (!ok) return;
 
-      window.fbSave();
+      showCuteLoading(kidName);
+      try {
+        await window.fbSave();
+      } finally {
+        hideCuteLoading();
+      }
     }
 
     function checkPw() {
@@ -772,8 +892,12 @@
 
         if (mealData) document.getElementById("mealState").textContent = "저장됨";
         if (studyData) document.getElementById("studyState").textContent = "저장됨";
+        hideCuteLoading();
         alert(name + "의 사진이 저장되었습니다!");
-      } catch (e) { alert("저장 오류: " + e.message); }
+      } catch (e) {
+        hideCuteLoading();
+        alert("저장 오류: " + e.message);
+      }
     };
 
     async function refreshCalendarMaps() {
