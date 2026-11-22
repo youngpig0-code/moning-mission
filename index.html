@@ -73,10 +73,7 @@
       padding: 0 10px;
       font-size: 14px;
       font-weight: 700;
-    }
-    input:disabled {
-      background: #f1f5f9;
-      color: #64748b;
+      background: #ffffff;
     }
     .status {
       margin-top: 10px;
@@ -97,29 +94,27 @@
       font-size: 15px;
       gap: 8px;
     }
-    .todo-guide-box {
-      background: #f5f3ff;
-      border: 1px solid #ddd6fe;
-      color: #4c1d95;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      font-weight: 800;
+    .todo-sub-card {
+      background: #faf5ff;
+      border: 1px solid #e9d5ff;
+      border-radius: 14px;
+      padding: 10px;
       margin-bottom: 10px;
     }
-    .todo-guide-title {
-      font-size: 12px;
-      font-weight: 900;
-      color: #6d28d9;
-      margin-bottom: 6px;
+    .todo-sub-card:last-child {
+      margin-bottom: 0;
     }
-    .kid-todo-list {
-      margin: 0;
-      padding-left: 18px;
-      line-height: 1.55;
+    .todo-sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .todo-sub-title {
       font-size: 13px;
-      font-weight: 800;
-      color: #3b0764;
+      font-weight: 900;
+      color: #4c1d95;
     }
     .mission-grid {
       display: grid;
@@ -133,20 +128,21 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      height: 120px;
+      height: 112px;
       border-radius: 14px;
       color: #fff;
       font-weight: 900;
-      font-size: 14px;
+      font-size: 13px;
       text-align: center;
       cursor: pointer;
+      padding: 6px;
     }
-    .cam-meal { background: #f97316; }
+    .cam-meal { background: #f97316; height: 120px; font-size: 14px; }
     .cam-todo { background: #8b5cf6; }
     .preview-box {
       position: relative;
       width: 100%;
-      height: 120px;
+      height: 112px;
       border-radius: 14px;
       border: 2px dashed #cbd5e1;
       background: #f8fafc;
@@ -156,6 +152,7 @@
       overflow: hidden;
       cursor: pointer;
     }
+    .preview-box.meal-box { height: 120px; }
     .preview-box img {
       width: 100%;
       height: 100%;
@@ -266,6 +263,28 @@
       border-radius: 10px;
       cursor: pointer;
       white-space: nowrap;
+    }
+
+    /* 관리자 할일별 사진 그리드 */
+    .admin-todo-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .admin-todo-photo-card {
+      background: #faf5ff;
+      border: 1px solid #e9d5ff;
+      border-radius: 10px;
+      padding: 8px;
+    }
+    .admin-todo-photo-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #5b21b6;
+      margin-bottom: 5px;
+      line-height: 1.3;
+      word-break: break-word;
     }
 
     /* 관리자 커스텀 달력 */
@@ -484,17 +503,17 @@
         <div class="row2">
           <div>
             <label class="lbl">👤 이름</label>
-            <select id="childSelect" onchange="loadToday()">
+            <select id="childSelect" onchange="onKidContextChange()">
               <option value="홍리안">홍리안</option>
               <option value="홍지운">홍지운</option>
             </select>
           </div>
           <div>
-            <label class="lbl">📅 오늘 날짜 (수정불가)</label>
-            <input id="todayInput" type="text" readonly disabled />
+            <label class="lbl">📅 날짜 선택</label>
+            <input id="kidDateInput" type="date" onchange="onKidContextChange()" />
           </div>
         </div>
-        <div id="statusMsg" class="status">오늘 날짜를 확인 중...</div>
+        <div id="statusMsg" class="status">날짜를 확인 중...</div>
       </div>
 
       <!-- 1. 밥 사진 -->
@@ -508,37 +527,22 @@
             <span style="font-size:26px;">📷</span>
             <span>밥 사진 찍기</span>
           </label>
-          <input id="mealFile" type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPickPhoto(event, 'meal')" />
+          <input id="mealFile" type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPickMealPhoto(event)" />
 
-          <div class="preview-box" onclick="openBigPhoto('meal')">
+          <div class="preview-box meal-box" onclick="openBigPhoto('meal')">
             <img id="mealImg" alt="밥 사진" />
             <span id="mealHint" style="font-size:12px; color:#94a3b8; text-align:center;">버튼을 눌러<br>사진을 찍어주세요</span>
           </div>
         </div>
       </div>
 
-      <!-- 2. 오늘의 할일 목록 + 사진 -->
+      <!-- 2. 오늘의 할일 목록 + 할일별 사진 등록 칸 -->
       <div class="box" style="border-color:#ede9fe;">
         <div class="mission-top">
           <span style="color:#7c3aed;">📌 2. 오늘의 할일 다 했어요!</span>
-          <span id="todoState" style="font-size:12px; color:#94a3b8;">미등록</span>
+          <span id="todoOverallState" style="font-size:12px; color:#94a3b8;">0 / 0 완료</span>
         </div>
-        <div class="todo-guide-box">
-          <div class="todo-guide-title">📋 오늘의 할일 목록</div>
-          <div id="kidTodoGuide">아직 지정된 할일이 없어요.</div>
-        </div>
-        <div class="mission-grid">
-          <label for="todoFile" class="cam-btn cam-todo">
-            <span style="font-size:26px;">📷</span>
-            <span>할일 사진 찍기</span>
-          </label>
-          <input id="todoFile" type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPickPhoto(event, 'todo')" />
-
-          <div class="preview-box" onclick="openBigPhoto('todo')">
-            <img id="todoImg" alt="오늘의 할일 사진" />
-            <span id="todoHint" style="font-size:12px; color:#94a3b8; text-align:center;">버튼을 눌러<br>사진을 찍어주세요</span>
-          </div>
-        </div>
+        <div id="kidTodoSlotsContainer"></div>
       </div>
 
       <button type="button" class="save-btn" onclick="savePhotos()">✅ 사진 올리기 (저장하기)</button>
@@ -648,7 +652,9 @@
   <script>
     const KIDS = ["홍리안", "홍지운"];
     let mealData = null;
-    let todoData = null;
+    // 할일 인덱스별 사진 저장용 배열: todoPhotosByIdx[i] = dataUrl | null
+    let todoPhotosByIdx = [];
+    let todoSavedFlags = [];
     let currentKidTodoItems = [];
     let adminTodoLists = { 홍리안: [], 홍지운: [] };
     let adminOpen = false;
@@ -675,9 +681,13 @@
       return new Date(d - off).toISOString().slice(0, 10);
     }
     const TODAY = getToday();
-    document.getElementById("todayInput").value = TODAY;
+    document.getElementById("kidDateInput").value = TODAY;
     document.getElementById("adminDate").value = TODAY;
-    document.getElementById("statusMsg").textContent = "👋 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
+    document.getElementById("statusMsg").textContent = "👋 " + TODAY + " 미션 사진을 찍어 올려주세요!";
+
+    function getSelectedKidDate() {
+      return document.getElementById("kidDateInput").value || TODAY;
+    }
 
     function escapeHtml(str) {
       return String(str)
@@ -697,16 +707,92 @@
       return [];
     }
 
-    function renderKidTodoGuide(items) {
-      currentKidTodoItems = normalizeTodoItems(items);
-      const el = document.getElementById("kidTodoGuide");
-      if (!currentKidTodoItems.length) {
-        el.innerHTML = "아직 지정된 할일이 없어요.";
+    function updateTodoOverallState() {
+      const total = currentKidTodoItems.length;
+      const doneCount = todoPhotosByIdx.filter(Boolean).length;
+      const el = document.getElementById("todoOverallState");
+      if (!total) {
+        el.textContent = todoPhotosByIdx[0] ? "등록됨" : "미등록";
+        el.style.color = todoPhotosByIdx[0] ? "#15803d" : "#94a3b8";
         return;
       }
-      el.innerHTML = "<ul class='kid-todo-list'>" +
-        currentKidTodoItems.map(item => "<li>" + escapeHtml(item) + "</li>").join("") +
-        "</ul>";
+      el.textContent = doneCount + " / " + total + " 완료";
+      el.style.color = doneCount === total ? "#15803d" : "#7c3aed";
+    }
+
+    function refreshTodoSlotUI(idx) {
+      const img = document.getElementById("todoImg_" + idx);
+      const hint = document.getElementById("todoHint_" + idx);
+      const st = document.getElementById("todoItemState_" + idx);
+      const b64 = todoPhotosByIdx[idx];
+      if (!img || !hint || !st) return;
+
+      if (b64) {
+        img.src = b64;
+        img.style.display = "block";
+        hint.style.display = "none";
+        st.textContent = todoSavedFlags[idx] ? "저장됨" : "준비됨";
+        st.style.color = "#15803d";
+      } else {
+        img.src = "";
+        img.style.display = "none";
+        hint.style.display = "block";
+        st.textContent = "미등록";
+        st.style.color = "#94a3b8";
+      }
+      updateTodoOverallState();
+    }
+
+    function renderKidTodoSlots(items, existingTodoPhotos, legacyTodoPhoto) {
+      currentKidTodoItems = normalizeTodoItems(items);
+      const slotCount = currentKidTodoItems.length > 0 ? currentKidTodoItems.length : 1;
+
+      todoPhotosByIdx = [];
+      todoSavedFlags = [];
+
+      for (let i = 0; i < slotCount; i++) {
+        let photo = null;
+        if (Array.isArray(existingTodoPhotos) && existingTodoPhotos[i]) {
+          photo = existingTodoPhotos[i];
+        } else if (i === 0 && legacyTodoPhoto) {
+          photo = legacyTodoPhoto;
+        }
+        todoPhotosByIdx.push(photo);
+        todoSavedFlags.push(!!photo);
+      }
+
+      const container = document.getElementById("kidTodoSlotsContainer");
+      let html = "";
+
+      for (let i = 0; i < slotCount; i++) {
+        const taskLabel = currentKidTodoItems[i]
+          ? ("할일 " + (i + 1) + ": " + escapeHtml(currentKidTodoItems[i]))
+          : "오늘의 할일 인증 (지정된 할일 없음)";
+
+        html += "<div class='todo-sub-card'>" +
+          "<div class='todo-sub-header'>" +
+          "<span class='todo-sub-title'>" + taskLabel + "</span>" +
+          "<span id='todoItemState_" + i + "' style='font-size:11px; font-weight:800; color:#94a3b8; white-space:nowrap;'>미등록</span>" +
+          "</div>" +
+          "<div class='mission-grid'>" +
+          "<label for='todoFile_" + i + "' class='cam-btn cam-todo'>" +
+          "<span style='font-size:22px;'>📷</span>" +
+          "<span>할일 " + (i + 1) + " 사진</span>" +
+          "</label>" +
+          "<input id='todoFile_" + i + "' type='file' accept='image/*' capture='environment' style='display:none;' onchange=\"onPickTodoPhoto(event, " + i + ")\" />" +
+          "<div class='preview-box' onclick=\"openBigTodoPhoto(" + i + ")\">" +
+          "<img id='todoImg_" + i + "' alt='할일 사진 " + (i + 1) + "' />" +
+          "<span id='todoHint_" + i + "' style='font-size:12px; color:#94a3b8; text-align:center;'>버튼을 눌러<br>사진을 찍어주세요</span>" +
+          "</div>" +
+          "</div>" +
+          "</div>";
+      }
+
+      container.innerHTML = html;
+
+      for (let i = 0; i < slotCount; i++) {
+        refreshTodoSlotUI(i);
+      }
     }
 
     function renderAdminTodoChips(kidName) {
@@ -718,7 +804,7 @@
       }
       el.innerHTML = list.map((item, idx) =>
         "<span class='todo-item-chip'>" +
-        "<span>" + escapeHtml(item) + "</span>" +
+        "<span>" + (idx + 1) + ". " + escapeHtml(item) + "</span>" +
         "<button type='button' class='todo-chip-del' onclick=\"removeTodoItem('" + kidName + "', " + idx + ")\">✕</button>" +
         "</span>"
       ).join("");
@@ -841,7 +927,7 @@
       document.getElementById("adminSection").style.display = isKid ? "none" : "block";
       document.getElementById("btnKid").classList.toggle("active", isKid);
       document.getElementById("btnAdmin").classList.toggle("active", !isKid);
-      if (isKid && window.fbLoadToday) window.fbLoadToday();
+      if (isKid && window.fbLoadKidData) window.fbLoadKidData();
       if (!isKid && adminOpen && window.fbLoadAdmin) window.fbLoadAdmin();
       window.scrollTo(0, 0);
     }
@@ -860,11 +946,25 @@
 
     function openBigPhoto(type) {
       if (isSavingLock) return;
-      const src = type === "meal" ? mealData : todoData;
+      if (type !== "meal") return;
+      if (!mealData) return;
+      const name = document.getElementById("childSelect").value;
+      const dt = getSelectedKidDate();
+      document.getElementById("popTitle").textContent = dt + " " + name + " - 밥 사진";
+      document.getElementById("popBody").innerHTML = "<img src='" + mealData + "' style='max-width:100%; max-height:70vh; object-fit:contain;' />";
+      document.getElementById("popModal").style.display = "flex";
+    }
+
+    function openBigTodoPhoto(idx) {
+      if (isSavingLock) return;
+      const src = todoPhotosByIdx[idx];
       if (!src) return;
       const name = document.getElementById("childSelect").value;
-      const label = type === "meal" ? " - 밥 사진" : " - 오늘의 할일 사진";
-      document.getElementById("popTitle").textContent = TODAY + " " + name + label;
+      const dt = getSelectedKidDate();
+      const titleText = currentKidTodoItems[idx]
+        ? ("할일 " + (idx + 1) + ": " + currentKidTodoItems[idx])
+        : ("할일 " + (idx + 1) + " 사진");
+      document.getElementById("popTitle").textContent = dt + " " + name + " - " + titleText;
       document.getElementById("popBody").innerHTML = "<img src='" + src + "' style='max-width:100%; max-height:70vh; object-fit:contain;' />";
       document.getElementById("popModal").style.display = "flex";
     }
@@ -890,22 +990,33 @@
       reader.readAsDataURL(file);
     }
 
-    function onPickPhoto(ev, type) {
+    function onPickMealPhoto(ev) {
       if (isSavingLock) return;
       const file = ev.target.files[0];
       if (!file) return;
       compress(file, function(b64) {
-        if (type === "meal") { mealData = b64; setPreview("meal", b64, "준비됨"); }
-        else { todoData = b64; setPreview("todo", b64, "준비됨"); }
+        mealData = b64;
+        setMealPreview(b64, "준비됨");
         ev.target.value = "";
       });
     }
 
-    function setPreview(type, b64, text) {
-      const isMeal = type === "meal";
-      const img = document.getElementById(isMeal ? "mealImg" : "todoImg");
-      const hint = document.getElementById(isMeal ? "mealHint" : "todoHint");
-      const st = document.getElementById(isMeal ? "mealState" : "todoState");
+    function onPickTodoPhoto(ev, idx) {
+      if (isSavingLock) return;
+      const file = ev.target.files[0];
+      if (!file) return;
+      compress(file, function(b64) {
+        todoPhotosByIdx[idx] = b64;
+        todoSavedFlags[idx] = false;
+        refreshTodoSlotUI(idx);
+        ev.target.value = "";
+      });
+    }
+
+    function setMealPreview(b64, text) {
+      const img = document.getElementById("mealImg");
+      const hint = document.getElementById("mealHint");
+      const st = document.getElementById("mealState");
 
       if (b64) {
         img.src = b64;
@@ -922,12 +1033,12 @@
       }
     }
 
-    function loadToday() {
+    function onKidContextChange() {
       if (isSavingLock) return;
-      mealData = null; todoData = null;
-      setPreview("meal", null); setPreview("todo", null);
-      renderKidTodoGuide([]);
-      if (window.fbLoadToday) window.fbLoadToday();
+      mealData = null;
+      setMealPreview(null);
+      renderKidTodoSlots([], [], null);
+      if (window.fbLoadKidData) window.fbLoadKidData();
     }
 
     async function verifyFaceIdPasskey(kidName) {
@@ -995,7 +1106,10 @@
 
     async function savePhotos() {
       if (isSavingLock) return;
-      if (!mealData && !todoData) return alert("밥 사진 또는 오늘의 할일 사진 중 최소 한 장을 찍어주세요!");
+      const hasAnyTodoPhoto = todoPhotosByIdx.some(Boolean);
+      if (!mealData && !hasAnyTodoPhoto) {
+        return alert("밥 사진 또는 오늘의 할일 사진 중 최소 한 장을 찍어주세요!");
+      }
       if (!window.fbSave) return alert("Firebase 연결을 확인해주세요.");
 
       const kidName = document.getElementById("childSelect").value;
@@ -1065,46 +1179,73 @@
       };
     }
 
-    window.fbLoadToday = async function() {
+    window.fbLoadKidData = async function() {
       const name = document.getElementById("childSelect").value;
+      const targetDate = getSelectedKidDate();
       try {
-        const todoDoc = await fetchTodoForDate(TODAY);
-        renderKidTodoGuide(todoDoc[name] || []);
+        const todoDoc = await fetchTodoForDate(targetDate);
+        const assignedItems = todoDoc[name] || [];
 
-        const snap = await getDoc(doc(db, "morning_missions", TODAY + "_" + name));
-        if (snap.exists()) {
-          const d = snap.data();
-          if (d.mealPhoto) { mealData = d.mealPhoto; setPreview("meal", d.mealPhoto, "저장됨"); }
-          if (d.todoPhoto) { todoData = d.todoPhoto; setPreview("todo", d.todoPhoto, "저장됨"); }
-          document.getElementById("statusMsg").textContent = "✨ 오늘(" + TODAY + ") 저장된 사진이 있어요! 사진을 누르면 크게 보여요.";
+        const snap = await getDoc(doc(db, "morning_missions", targetDate + "_" + name));
+        const d = snap.exists() ? snap.data() : null;
+
+        const effectiveItems = assignedItems.length
+          ? assignedItems
+          : normalizeTodoItems(d && d.todoItems);
+
+        const existingTodoPhotos = Array.isArray(d && d.todoPhotos) ? d.todoPhotos : [];
+        const legacyTodoPhoto = (d && d.todoPhoto) || null;
+
+        renderKidTodoSlots(effectiveItems, existingTodoPhotos, legacyTodoPhoto);
+
+        if (d && d.mealPhoto) {
+          mealData = d.mealPhoto;
+          setMealPreview(d.mealPhoto, "저장됨");
         } else {
-          document.getElementById("statusMsg").textContent = "👋 안녕 " + name + "! 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
+          mealData = null;
+          setMealPreview(null);
         }
-      } catch (e) { console.error(e); }
+
+        if (d && (d.mealPhoto || legacyTodoPhoto || existingTodoPhotos.some(Boolean))) {
+          document.getElementById("statusMsg").textContent = "✨ " + targetDate + " 저장된 사진이 있어요! 사진을 누르면 크게 보여요.";
+        } else {
+          document.getElementById("statusMsg").textContent = "👋 안녕 " + name + "! " + targetDate + " 미션 사진을 찍어 올려주세요!";
+        }
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     window.fbSave = async function() {
       const name = document.getElementById("childSelect").value;
+      const targetDate = getSelectedKidDate();
       try {
-        await setDoc(doc(db, "morning_missions", TODAY + "_" + name), {
-          date: TODAY, childName: name,
+        const cleanTodoPhotos = todoPhotosByIdx.map(p => p || null);
+        await setDoc(doc(db, "morning_missions", targetDate + "_" + name), {
+          date: targetDate,
+          childName: name,
           mealPhoto: mealData || null,
           studyPhoto: null,
-          todoPhoto: todoData || null,
+          todoPhotos: cleanTodoPhotos,
+          todoPhoto: cleanTodoPhotos[0] || null,
           todoItems: currentKidTodoItems,
           updatedAt: new Date().toISOString()
         }, { merge: true });
 
-        const settleRef = doc(db, "allowance_settlements", TODAY);
+        const settleRef = doc(db, "allowance_settlements", targetDate);
         const settleSnap = await getDoc(settleRef);
         if (!settleSnap.exists()) {
-          await setDoc(settleRef, { date: TODAY, settled: false });
+          await setDoc(settleRef, { date: targetDate, settled: false });
         }
 
-        if (mealData) document.getElementById("mealState").textContent = "저장됨";
-        if (todoData) document.getElementById("todoState").textContent = "저장됨";
+        if (mealData) setMealPreview(mealData, "저장됨");
+        todoSavedFlags = cleanTodoPhotos.map(p => !!p);
+        for (let i = 0; i < todoPhotosByIdx.length; i++) {
+          refreshTodoSlotUI(i);
+        }
+
         hideCuteLoading();
-        alert(name + "의 사진이 저장되었습니다!");
+        alert(targetDate + " " + name + "의 사진이 저장되었습니다!");
       } catch (e) {
         hideCuteLoading();
         alert("저장 오류: " + e.message);
@@ -1130,8 +1271,8 @@
 
       document.getElementById("todoSaveStatus").textContent = "✅ " + dateStr + " 할일 목록이 저장되었습니다.";
       await window.fbLoadAdminDate(dateStr);
-      if (dateStr === TODAY && window.fbLoadToday) {
-        await window.fbLoadToday();
+      if (dateStr === getSelectedKidDate() && window.fbLoadKidData) {
+        await window.fbLoadKidData();
       }
     };
 
@@ -1142,7 +1283,8 @@
       const qs = await getDocs(collection(db, "morning_missions"));
       qs.forEach(s => {
         const data = s.data();
-        if (data.date && (data.mealPhoto || data.todoPhoto || data.studyPhoto)) {
+        const hasAnyTodo = Array.isArray(data.todoPhotos) && data.todoPhotos.some(Boolean);
+        if (data.date && (data.mealPhoto || data.todoPhoto || data.studyPhoto || hasAnyTodo)) {
           photoDatesMap[data.date] = true;
         }
       });
@@ -1206,32 +1348,57 @@
         const d = snap.exists() ? snap.data() : null;
         const assignedItems = (todoDoc[name] && todoDoc[name].length)
           ? todoDoc[name]
-          : normalizeTodoItems(d && (d.todoItems || d.todoText));
+          : normalizeTodoItems(d && d.todoItems);
 
-        html += "<div class='box'><div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>";
+        const savedTodoPhotos = Array.isArray(d && d.todoPhotos) ? d.todoPhotos : [];
+        const legacyPhoto = (d && d.todoPhoto) || null;
+        const photoCount = Math.max(
+          assignedItems.length,
+          savedTodoPhotos.length,
+          legacyPhoto ? 1 : 0
+        );
+
+        html += "<div class='box'><div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;'>";
         html += "<strong style='background:#fbbf24; padding:3px 9px; border-radius:8px;'>" + name + "</strong>";
         if (d) html += "<button type='button' class='del-btn' onclick=\"fbDelOne('" + dateStr + "','" + name + "')\">삭제</button>";
         html += "</div>";
 
-        if (assignedItems.length) {
-          html += "<div style='font-size:12px; font-weight:800; color:#4c1d95; background:#f5f3ff; padding:8px 10px; border-radius:10px; margin-bottom:10px;'>" +
-            "<div style='color:#6d28d9; margin-bottom:4px;'>📌 오늘의 할일 목록</div>" +
-            "<ul style='margin:0; padding-left:18px; line-height:1.5;'>" +
-            assignedItems.map(t => "<li>" + escapeHtml(t) + "</li>").join("") +
-            "</ul></div>";
+        // 밥 사진 영역
+        html += "<div style='margin-bottom:12px;'>";
+        html += "<div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 1. 밥 사진</div>";
+        if (d && d.mealPhoto) {
+          html += "<img src='" + d.mealPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 밥 사진','" + d.mealPhoto + "')\" style='width:100%; max-width:220px; height:115px; object-fit:cover; border-radius:10px; cursor:pointer;' />";
         } else {
-          html += "<div style='font-size:12px; font-weight:700; color:#64748b; background:#f8fafc; padding:6px 10px; border-radius:8px; margin-bottom:10px;'>📌 오늘의 할일: 미지정</div>";
+          html += "<div style='height:90px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>밥 사진 없음</div>";
         }
-
-        html += "<div class='row2'>";
-
-        html += "<div><div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 밥 사진</div>";
-        html += d && d.mealPhoto ? "<img src='" + d.mealPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 밥','" + d.mealPhoto + "')\" style='width:100%; height:110px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:110px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>없음</div>";
         html += "</div>";
 
-        html += "<div><div style='font-size:12px; font-weight:800; color:#7c3aed; margin-bottom:4px;'>📌 할일 사진</div>";
-        html += d && d.todoPhoto ? "<img src='" + d.todoPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 할일','" + d.todoPhoto + "')\" style='width:100%; height:110px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:110px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>없음</div>";
-        html += "</div>";
+        // 할일별 개별 사진 영역
+        html += "<div>";
+        html += "<div style='font-size:12px; font-weight:800; color:#6d28d9; margin-bottom:4px;'>📌 2. 오늘의 할일별 사진</div>";
+
+        if (photoCount === 0) {
+          html += "<div style='height:80px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>할일 및 사진 없음</div>";
+        } else {
+          html += "<div class='admin-todo-photo-grid'>";
+          for (let i = 0; i < photoCount; i++) {
+            const taskName = assignedItems[i]
+              ? ("할일 " + (i + 1) + ": " + assignedItems[i])
+              : ("할일 " + (i + 1));
+            const pSrc = savedTodoPhotos[i] || (i === 0 ? legacyPhoto : null);
+            const safeTitle = escapeHtml(dateStr + " " + name + " - " + taskName);
+
+            html += "<div class='admin-todo-photo-card'>";
+            html += "<div class='admin-todo-photo-label'>" + escapeHtml(taskName) + "</div>";
+            if (pSrc) {
+              html += "<img src='" + pSrc + "' onclick=\"openAdminImg('" + safeTitle + "','" + pSrc + "')\" style='width:100%; height:96px; object-fit:cover; border-radius:8px; cursor:pointer;' />";
+            } else {
+              html += "<div style='height:96px; background:#ffffff; border:1px dashed #ddd6fe; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#94a3b8;'>미등록</div>";
+            }
+            html += "</div>";
+          }
+          html += "</div>";
+        }
 
         html += "</div></div>";
       }
@@ -1259,7 +1426,7 @@
       await window.fbLoadAdmin();
     };
 
-    window.fbLoadToday();
+    window.fbLoadKidData();
   </script>
 </body>
 </html>
