@@ -92,9 +92,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       font-weight: 900;
       font-size: 15px;
+      gap: 8px;
+    }
+    .todo-guide-box {
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      color: #5b21b6;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
     }
     .mission-grid {
       display: grid;
@@ -118,6 +129,7 @@
     }
     .cam-meal { background: #f97316; }
     .cam-study { background: #0ea5e9; }
+    .cam-todo { background: #8b5cf6; }
     .preview-box {
       position: relative;
       width: 100%;
@@ -175,6 +187,18 @@
       background: #dcfce7;
       color: #15803d;
       border: 1px solid #86efac;
+    }
+    .todo-save-btn {
+      border: none;
+      background: #7c3aed;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 0 14px;
+      height: 42px;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
     /* 관리자 커스텀 달력 */
@@ -446,6 +470,29 @@
         </div>
       </div>
 
+      <!-- 3. 오늘의 할일 사진 -->
+      <div class="box" style="border-color:#ede9fe;">
+        <div class="mission-top">
+          <span style="color:#7c3aed;">📌 3. 오늘의 할일 다 했어요!</span>
+          <span id="todoState" style="font-size:12px; color:#94a3b8;">미등록</span>
+        </div>
+        <div id="kidTodoGuide" class="todo-guide-box">
+          오늘 지정된 할일: 아직 지정된 할일이 없어요.
+        </div>
+        <div class="mission-grid">
+          <label for="todoFile" class="cam-btn cam-todo">
+            <span style="font-size:26px;">📷</span>
+            <span>할일 사진 찍기</span>
+          </label>
+          <input id="todoFile" type="file" accept="image/*" capture="environment" style="display:none;" onchange="onPickPhoto(event, 'todo')" />
+
+          <div class="preview-box" onclick="openBigPhoto('todo')">
+            <img id="todoImg" alt="오늘의 할일 사진" />
+            <span id="todoHint" style="font-size:12px; color:#94a3b8; text-align:center;">버튼을 눌러<br>사진을 찍어주세요</span>
+          </div>
+        </div>
+      </div>
+
       <button type="button" class="save-btn" onclick="savePhotos()">✅ 사진 올리기 (저장하기)</button>
     </div>
 
@@ -471,6 +518,25 @@
             </div>
           </div>
           <input id="adminDate" type="date" onchange="onDateInputChange(this.value)" />
+
+          <!-- 선택한 날짜의 오늘의 할일 지정 -->
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid #f1f5f9;">
+            <label class="lbl">📌 선택한 날짜의 오늘의 할일 지정</label>
+            <div class="row2" style="margin-bottom:8px;">
+              <div>
+                <span style="font-size:11px; font-weight:800; color:#7c3aed; display:block; margin-bottom:4px;">홍리안 할일</span>
+                <input id="adminTodoRian" type="text" placeholder="예: 방 정리하기" />
+              </div>
+              <div>
+                <span style="font-size:11px; font-weight:800; color:#7c3aed; display:block; margin-bottom:4px;">홍지운 할일</span>
+                <input id="adminTodoJiwoon" type="text" placeholder="예: 책 10쪽 읽기" />
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <span id="todoSaveStatus" style="font-size:11px; color:#64748b; font-weight:700;"></span>
+              <button type="button" class="todo-save-btn" onclick="saveDailyTodos()">💾 할일 저장</button>
+            </div>
+          </div>
 
           <!-- 사진이 올라간 날짜만 표시되는 달력 -->
           <div class="cal-header">
@@ -526,6 +592,8 @@
     const KIDS = ["홍리안", "홍지운"];
     let mealData = null;
     let studyData = null;
+    let todoData = null;
+    let currentKidTodoText = "";
     let adminOpen = false;
     let isSavingLock = false;
 
@@ -553,6 +621,16 @@
     document.getElementById("todayInput").value = TODAY;
     document.getElementById("adminDate").value = TODAY;
     document.getElementById("statusMsg").textContent = "👋 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
+
+    function renderKidTodoGuide(todoText) {
+      currentKidTodoText = (todoText || "").trim();
+      const el = document.getElementById("kidTodoGuide");
+      if (currentKidTodoText) {
+        el.textContent = "오늘 할일: " + currentKidTodoText;
+      } else {
+        el.textContent = "오늘 지정된 할일: 아직 지정된 할일이 없어요.";
+      }
+    }
 
     let calYear = parseInt(TODAY.slice(0, 4), 10);
     let calMonth = parseInt(TODAY.slice(5, 7), 10) - 1;
@@ -673,10 +751,11 @@
 
     function openBigPhoto(type) {
       if (isSavingLock) return;
-      const src = type === "meal" ? mealData : studyData;
+      const src = type === "meal" ? mealData : (type === "study" ? studyData : todoData);
       if (!src) return;
       const name = document.getElementById("childSelect").value;
-      document.getElementById("popTitle").textContent = TODAY + " " + name + (type === "meal" ? " - 밥 사진" : " - 공부 사진");
+      const label = type === "meal" ? " - 밥 사진" : (type === "study" ? " - 공부 사진" : " - 오늘의 할일 사진");
+      document.getElementById("popTitle").textContent = TODAY + " " + name + label;
       document.getElementById("popBody").innerHTML = "<img src='" + src + "' style='max-width:100%; max-height:70vh; object-fit:contain;' />";
       document.getElementById("popModal").style.display = "flex";
     }
@@ -708,15 +787,20 @@
       if (!file) return;
       compress(file, function(b64) {
         if (type === "meal") { mealData = b64; setPreview("meal", b64, "준비됨"); }
-        else { studyData = b64; setPreview("study", b64, "준비됨"); }
+        else if (type === "study") { studyData = b64; setPreview("study", b64, "준비됨"); }
+        else { todoData = b64; setPreview("todo", b64, "준비됨"); }
         ev.target.value = "";
       });
     }
 
     function setPreview(type, b64, text) {
-      const img = document.getElementById(type === "meal" ? "mealImg" : "studyImg");
-      const hint = document.getElementById(type === "meal" ? "mealHint" : "studyHint");
-      const st = document.getElementById(type === "meal" ? "mealState" : "studyState");
+      const imgId = type === "meal" ? "mealImg" : (type === "study" ? "studyImg" : "todoImg");
+      const hintId = type === "meal" ? "mealHint" : (type === "study" ? "studyHint" : "todoHint");
+      const stateId = type === "meal" ? "mealState" : (type === "study" ? "studyState" : "todoState");
+
+      const img = document.getElementById(imgId);
+      const hint = document.getElementById(hintId);
+      const st = document.getElementById(stateId);
       if (b64) {
         img.src = b64;
         img.style.display = "block";
@@ -734,8 +818,9 @@
 
     function loadToday() {
       if (isSavingLock) return;
-      mealData = null; studyData = null;
-      setPreview("meal", null); setPreview("study", null);
+      mealData = null; studyData = null; todoData = null;
+      setPreview("meal", null); setPreview("study", null); setPreview("todo", null);
+      renderKidTodoGuide("");
       if (window.fbLoadToday) window.fbLoadToday();
     }
 
@@ -804,7 +889,7 @@
 
     async function savePhotos() {
       if (isSavingLock) return;
-      if (!mealData && !studyData) return alert("밥 사진 또는 공부 사진을 찍어주세요!");
+      if (!mealData && !studyData && !todoData) return alert("밥 사진, 공부 사진, 오늘의 할일 사진 중 최소 한 장을 찍어주세요!");
       if (!window.fbSave) return alert("Firebase 연결을 확인해주세요.");
 
       const kidName = document.getElementById("childSelect").value;
@@ -834,6 +919,10 @@
       if (window.fbLoadAdminDate) window.fbLoadAdminDate(d);
     }
 
+    function saveDailyTodos() {
+      if (window.fbSaveDailyTodos) window.fbSaveDailyTodos();
+    }
+
     function toggleSettlement() {
       if (window.fbToggleSettlement) window.fbToggleSettlement();
     }
@@ -860,14 +949,23 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    async function fetchTodoForDate(dateStr) {
+      const snap = await getDoc(doc(db, "daily_todos", dateStr));
+      return snap.exists() ? snap.data() : { 홍리안: "", 홍지운: "" };
+    }
+
     window.fbLoadToday = async function() {
       const name = document.getElementById("childSelect").value;
       try {
+        const todoDoc = await fetchTodoForDate(TODAY);
+        renderKidTodoGuide(todoDoc[name] || "");
+
         const snap = await getDoc(doc(db, "morning_missions", TODAY + "_" + name));
         if (snap.exists()) {
           const d = snap.data();
           if (d.mealPhoto) { mealData = d.mealPhoto; setPreview("meal", d.mealPhoto, "저장됨"); }
           if (d.studyPhoto) { studyData = d.studyPhoto; setPreview("study", d.studyPhoto, "저장됨"); }
+          if (d.todoPhoto) { todoData = d.todoPhoto; setPreview("todo", d.todoPhoto, "저장됨"); }
           document.getElementById("statusMsg").textContent = "✨ 오늘(" + TODAY + ") 저장된 사진이 있어요! 사진을 누르면 크게 보여요.";
         } else {
           document.getElementById("statusMsg").textContent = "👋 안녕 " + name + "! 오늘(" + TODAY + ") 미션 사진을 찍어 올려주세요!";
@@ -880,7 +978,10 @@
       try {
         await setDoc(doc(db, "morning_missions", TODAY + "_" + name), {
           date: TODAY, childName: name,
-          mealPhoto: mealData || null, studyPhoto: studyData || null,
+          mealPhoto: mealData || null,
+          studyPhoto: studyData || null,
+          todoPhoto: todoData || null,
+          todoText: currentKidTodoText || "",
           updatedAt: new Date().toISOString()
         }, { merge: true });
 
@@ -892,11 +993,32 @@
 
         if (mealData) document.getElementById("mealState").textContent = "저장됨";
         if (studyData) document.getElementById("studyState").textContent = "저장됨";
+        if (todoData) document.getElementById("todoState").textContent = "저장됨";
         hideCuteLoading();
         alert(name + "의 사진이 저장되었습니다!");
       } catch (e) {
         hideCuteLoading();
         alert("저장 오류: " + e.message);
+      }
+    };
+
+    window.fbSaveDailyTodos = async function() {
+      const dateStr = document.getElementById("adminDate").value;
+      if (!dateStr) return;
+      const rianTodo = document.getElementById("adminTodoRian").value.trim();
+      const jiwoonTodo = document.getElementById("adminTodoJiwoon").value.trim();
+
+      await setDoc(doc(db, "daily_todos", dateStr), {
+        date: dateStr,
+        홍리안: rianTodo,
+        홍지운: jiwoonTodo,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      document.getElementById("todoSaveStatus").textContent = "✅ " + dateStr + " 할일이 저장되었습니다.";
+      await window.fbLoadAdminDate(dateStr);
+      if (dateStr === TODAY && window.fbLoadToday) {
+        await window.fbLoadToday();
       }
     };
 
@@ -907,7 +1029,7 @@
       const qs = await getDocs(collection(db, "morning_missions"));
       qs.forEach(s => {
         const data = s.data();
-        if (data.date && (data.mealPhoto || data.studyPhoto)) {
+        if (data.date && (data.mealPhoto || data.studyPhoto || data.todoPhoto)) {
           photoDatesMap[data.date] = true;
         }
       });
@@ -953,19 +1075,40 @@
     window.fbLoadAdminDate = async function(dateStr) {
       if (!dateStr) return;
       updateSettleButtonUI(dateStr);
+
+      const todoDoc = await fetchTodoForDate(dateStr);
+      document.getElementById("adminTodoRian").value = todoDoc["홍리안"] || "";
+      document.getElementById("adminTodoJiwoon").value = todoDoc["홍지운"] || "";
+      document.getElementById("todoSaveStatus").textContent =
+        (todoDoc["홍리안"] || todoDoc["홍지운"]) ? "현재 저장된 할일이 불러와졌습니다." : "이 날짜에 지정된 할일이 없습니다.";
+
       let html = "";
       for (const name of KIDS) {
         const snap = await getDoc(doc(db, "morning_missions", dateStr + "_" + name));
         const d = snap.exists() ? snap.data() : null;
-        html += "<div class='box'><div style='display:flex; justify-content:space-between; margin-bottom:10px;'>";
+        const assignedTodo = todoDoc[name] || (d && d.todoText) || "";
+
+        html += "<div class='box'><div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>";
         html += "<strong style='background:#fbbf24; padding:3px 9px; border-radius:8px;'>" + name + "</strong>";
         if (d) html += "<button type='button' class='del-btn' onclick=\"fbDelOne('" + dateStr + "','" + name + "')\">삭제</button>";
-        html += "</div><div class='row2'>";
-        html += "<div><div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 밥 사진</div>";
-        html += d && d.mealPhoto ? "<img src='" + d.mealPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 밥','" + d.mealPhoto + "')\" style='width:100%; height:110px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:110px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>없음</div>";
-        html += "</div><div><div style='font-size:12px; font-weight:800; color:#0284c7; margin-bottom:4px;'>✏️ 공부 사진</div>";
-        html += d && d.studyPhoto ? "<img src='" + d.studyPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 공부','" + d.studyPhoto + "')\" style='width:100%; height:110px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:110px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#94a3b8;'>없음</div>";
-        html += "</div></div></div>";
+        html += "</div>";
+        html += "<div style='font-size:12px; font-weight:800; color:#6d28d9; background:#f5f3ff; padding:6px 10px; border-radius:8px; margin-bottom:10px;'>📌 오늘의 할일: " + (assignedTodo ? assignedTodo : "미지정") + "</div>";
+
+        html += "<div style='display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;'>";
+
+        html += "<div><div style='font-size:11px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 밥 사진</div>";
+        html += d && d.mealPhoto ? "<img src='" + d.mealPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 밥','" + d.mealPhoto + "')\" style='width:100%; height:96px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:96px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#94a3b8;'>없음</div>";
+        html += "</div>";
+
+        html += "<div><div style='font-size:11px; font-weight:800; color:#0284c7; margin-bottom:4px;'>✏️ 공부 사진</div>";
+        html += d && d.studyPhoto ? "<img src='" + d.studyPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 공부','" + d.studyPhoto + "')\" style='width:100%; height:96px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:96px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#94a3b8;'>없음</div>";
+        html += "</div>";
+
+        html += "<div><div style='font-size:11px; font-weight:800; color:#7c3aed; margin-bottom:4px;'>📌 할일 사진</div>";
+        html += d && d.todoPhoto ? "<img src='" + d.todoPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 할일','" + d.todoPhoto + "')\" style='width:100%; height:96px; object-fit:cover; border-radius:10px; cursor:pointer;' />" : "<div style='height:96px; background:#f8fafc; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#94a3b8;'>없음</div>";
+        html += "</div>";
+
+        html += "</div></div>";
       }
       document.getElementById("adminList").innerHTML = html;
     };
