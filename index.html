@@ -651,8 +651,12 @@
 
   <script>
     const KIDS = ["홍리안", "홍지운"];
+    // Firestore 문서 1개 최대 한도(1,048,576 bytes)에 여유를 둔 안전 기준(약 900 KB)
+    const MAX_DOC_BYTES = 900 * 1024;
+    // 할일 최대 10개 + 밥 사진 1장 = 총 11장 기준 장당 목표 크기(약 78 KB)
+    const TARGET_PHOTO_BYTES = 78 * 1024;
+
     let mealData = null;
-    // 할일 인덱스별 사진 저장용 배열: todoPhotosByIdx[i] = dataUrl | null
     let todoPhotosByIdx = [];
     let todoSavedFlags = [];
     let currentKidTodoItems = [];
@@ -662,6 +666,11 @@
 
     let photoDatesMap = {};
     let settlementMap = {};
+
+    function estimateUtf8Bytes(str) {
+      if (!str) return 0;
+      return new TextEncoder().encode(String(str)).length;
+    }
 
     function showCuteLoading(kidName) {
       isSavingLock = true;
@@ -973,17 +982,34 @@
       document.getElementById("popModal").style.display = "none";
     }
 
+    // 할일 최대 10개 + 밥 사진 1장(총 11장)까지 1 MiB 문서 한도 안에 들어가도록 화질/해상도 조절
     function compress(file, cb) {
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-          let w = img.width, h = img.height;
-          if (w > 800) { h = Math.round(h * 800 / w); w = 800; }
-          const c = document.createElement("canvas");
-          c.width = w; c.height = h;
-          c.getContext("2d").drawImage(img, 0, 0, w, h);
-          cb(c.toDataURL("image/jpeg", 0.72));
+          const tiers = [
+            { maxW: 720, quality: 0.68 },
+            { maxW: 640, quality: 0.58 },
+            { maxW: 540, quality: 0.50 },
+            { maxW: 450, quality: 0.44 }
+          ];
+          let chosen = "";
+          for (let t = 0; t < tiers.length; t++) {
+            const { maxW, quality } = tiers[t];
+            let w = img.width, h = img.height;
+            if (w > maxW) {
+              h = Math.round(h * maxW / w);
+              w = maxW;
+            }
+            const c = document.createElement("canvas");
+            c.width = w;
+            c.height = h;
+            c.getContext("2d").drawImage(img, 0, 0, w, h);
+            chosen = c.toDataURL("image/jpeg", quality);
+            if (estimateUtf8Bytes(chosen) <= TARGET_PHOTO_BYTES) break;
+          }
+          cb(chosen);
         };
         img.src = e.target.result;
       };
@@ -1221,7 +1247,7 @@
       const targetDate = getSelectedKidDate();
       try {
         const cleanTodoPhotos = todoPhotosByIdx.map(p => p || null);
-        await setDoc(doc(db, "morning_missions", targetDate + "_" + name), {
+        const payload = {
           date: targetDate,
           childName: name,
           mealPhoto: mealData || null,
@@ -1230,7 +1256,16 @@
           todoPhoto: cleanTodoPhotos[0] || null,
           todoItems: currentKidTodoItems,
           updatedAt: new Date().toISOString()
-        }, { merge: true });
+        };
+
+        const totalBytes = estimateUtf8Bytes(JSON.stringify(payload));
+        if (totalBytes > MAX_DOC_BYTES) {
+          hideCuteLoading();
+          alert("한 번에 저장할 수 있는 최대 용량(1MB)을 넘었습니다. 사진 수를 조금 줄여 저장해 주세요!");
+          return;
+        }
+
+        await setDoc(doc(db, "morning_missions", targetDate + "_" + name), payload, { merge: true });
 
         const settleRef = doc(db, "allowance_settlements", targetDate);
         const settleSnap = await getDoc(settleRef);
@@ -1363,7 +1398,6 @@
         if (d) html += "<button type='button' class='del-btn' onclick=\"fbDelOne('" + dateStr + "','" + name + "')\">삭제</button>";
         html += "</div>";
 
-        // 밥 사진 영역
         html += "<div style='margin-bottom:12px;'>";
         html += "<div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 1. 밥 사진</div>";
         if (d && d.mealPhoto) {
@@ -1373,7 +1407,6 @@
         }
         html += "</div>";
 
-        // 할일별 개별 사진 영역
         html += "<div>";
         html += "<div style='font-size:12px; font-weight:800; color:#6d28d9; margin-bottom:4px;'>📌 2. 오늘의 할일별 사진</div>";
 
