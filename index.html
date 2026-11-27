@@ -65,7 +65,7 @@
       color: #64748b;
       margin-bottom: 5px;
     }
-    select, input[type="text"], input[type="date"], input[type="password"] {
+    select, input[type="text"], input[type="number"], input[type="date"], input[type="password"] {
       width: 100%;
       height: 40px;
       border-radius: 10px;
@@ -93,6 +93,18 @@
       font-weight: 900;
       font-size: 15px;
       gap: 8px;
+      flex-wrap: wrap;
+    }
+    .reward-pill {
+      display: inline-block;
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
     .todo-sub-card {
       background: #faf5ff;
@@ -110,6 +122,7 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
+      flex-wrap: wrap;
     }
     .todo-sub-title {
       font-size: 13px;
@@ -199,13 +212,26 @@
       border: 1px solid #86efac;
     }
 
-    /* 고정 할일 세팅 카드 */
+    /* 용돈 및 고정 할일 세팅 카드 */
     .fixed-setup-card {
       background: #fffbeb;
       border: 1px solid #fde68a;
       border-radius: 12px;
       padding: 10px;
       margin-bottom: 12px;
+    }
+    .meal-reward-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #fde68a;
+    }
+    .meal-reward-input {
+      width: 110px !important;
+      flex: 0 0 110px;
+      text-align: right;
     }
     .fixed-setup-btn {
       border: none;
@@ -297,6 +323,14 @@
     .todo-add-row {
       display: flex;
       gap: 6px;
+      align-items: center;
+    }
+    .reward-mini-input {
+      width: 84px !important;
+      flex: 0 0 84px;
+      text-align: right;
+      font-size: 13px !important;
+      padding: 0 7px !important;
     }
     .todo-add-btn {
       border: none;
@@ -310,29 +344,42 @@
       cursor: pointer;
       white-space: nowrap;
     }
-    .todo-chips-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .todo-assigned-list {
       margin-top: 8px;
       padding-top: 8px;
       border-top: 1px dashed #ddd6fe;
-    }
-    .todo-item-chip {
-      display: inline-flex;
-      align-items: center;
+      display: flex;
+      flex-direction: column;
       gap: 6px;
+    }
+    .todo-assigned-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       background: #ffffff;
-      border: 1px solid #d8b4fe;
-      color: #4c1d95;
+      border: 1px solid #e9d5ff;
+      border-radius: 10px;
+      padding: 6px 8px;
+    }
+    .todo-assigned-row.is-fixed {
+      background: #f5f3ff;
+      border-color: #c4b5fd;
+    }
+    .todo-assigned-name {
       font-size: 12px;
       font-weight: 800;
-      padding: 4px 8px;
-      border-radius: 999px;
+      color: #4c1d95;
+      flex: 1;
+      word-break: break-word;
     }
-    .todo-item-chip.is-fixed {
-      background: #ede9fe;
-      border-color: #a78bfa;
+    .todo-row-reward {
+      width: 78px !important;
+      height: 30px !important;
+      font-size: 12px !important;
+      padding: 0 6px !important;
+      text-align: right;
+      border-radius: 8px !important;
     }
     .todo-chip-del {
       border: none;
@@ -340,11 +387,12 @@
       color: #7e22ce;
       font-size: 11px;
       font-weight: 900;
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       border-radius: 999px;
       cursor: pointer;
       line-height: 1;
+      flex: 0 0 22px;
     }
     .todo-save-btn {
       border: none;
@@ -482,6 +530,67 @@
       padding: 14px;
     }
 
+    /* 용돈 획득 축하 팝업 모달 */
+    .reward-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .reward-modal-card {
+      width: 100%;
+      max-width: 330px;
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 38%);
+      border: 3px solid #f59e0b;
+      border-radius: 26px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 18px 36px rgba(217, 119, 6, 0.3);
+      animation: rewardPopIn 0.24s ease-out;
+    }
+    @keyframes rewardPopIn {
+      from { transform: scale(0.86); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .reward-badge-emoji {
+      font-size: 42px;
+      margin-bottom: 6px;
+    }
+    .reward-main-text {
+      font-size: 22px;
+      font-weight: 900;
+      color: #b45309;
+      margin-bottom: 6px;
+    }
+    .reward-detail-box {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #78350f;
+      margin: 10px 0 14px 0;
+      line-height: 1.5;
+      text-align: left;
+    }
+    .reward-ok-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 14px;
+      background: #f59e0b;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
     /* 귀여운 로딩 바 오버레이 */
     .cute-loading-backdrop {
       display: none;
@@ -596,7 +705,7 @@
       <!-- 1. 밥 사진 -->
       <div class="box">
         <div class="mission-top">
-          <span style="color:#ea580c;">🍚 1. 아침밥 다 먹었어요!</span>
+          <span style="color:#ea580c;">🍚 1. 아침밥 다 먹었어요! <span id="kidMealRewardBadge" class="reward-pill">+0원</span></span>
           <span id="mealState" style="font-size:12px; color:#94a3b8;">미등록</span>
         </div>
         <div class="mission-grid">
@@ -648,22 +757,29 @@
           </div>
           <input id="adminDate" type="date" onchange="onDateInputChange(this.value)" />
 
-          <!-- 매일 쓰는 고정 할일 목록 사전 세팅 영역 -->
+          <!-- 아침밥 용돈 & 고정 할일 목록 세팅 영역 -->
           <div style="margin-top:12px; padding-top:12px; border-top:1px solid #f1f5f9;">
             <div class="fixed-setup-card">
+              <div class="meal-reward-row">
+                <span style="font-size:12px; font-weight:900; color:#ea580c; flex:1;">🍚 아침밥 완료 용돈</span>
+                <input id="mealRewardInput" type="number" min="0" step="100" class="meal-reward-input" placeholder="0" onchange="onMealRewardChange()" />
+                <span style="font-size:12px; font-weight:800; color:#78350f;">원</span>
+              </div>
+
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span style="font-size:12px; font-weight:900; color:#92400e;">⭐ 고정 할일 목록 세팅 (매일 선택용)</span>
+                <span style="font-size:12px; font-weight:900; color:#92400e;">⭐ 고정 할일 & 기본 용돈 세팅</span>
                 <span id="fixedRoutineStatus" style="font-size:11px; color:#b45309; font-weight:700;"></span>
               </div>
               <div class="todo-add-row">
-                <input id="fixedRoutineInput" type="text" placeholder="고정 할일 추가 (예: 이불 개기, 물 한 잔)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addFixedRoutineItem(); }" />
+                <input id="fixedRoutineInput" type="text" placeholder="고정 할일 (예: 이불 개기)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addFixedRoutineItem(); }" />
+                <input id="fixedRoutineRewardInput" type="number" min="0" step="100" class="reward-mini-input" placeholder="용돈(원)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addFixedRoutineItem(); }" />
                 <button type="button" class="fixed-setup-btn" onclick="addFixedRoutineItem()">+ 고정 추가</button>
               </div>
               <div id="fixedMasterChips" class="todo-chips-wrap" style="border-top-color:#fde68a;"></div>
             </div>
 
-            <!-- 선택한 날짜의 아이별 할일 등록: ① 고정 할일 선택 -> ② 개별 할일 key-in -->
-            <label class="lbl">📌 선택한 날짜의 아이별 할일 등록</label>
+            <!-- 선택한 날짜의 아이별 할일 등록: ① 고정 할일 선택 -> ② 개별 할일 key-in & 용돈 지정 -->
+            <label class="lbl">📌 선택한 날짜의 아이별 할일 & 용돈 등록</label>
 
             <!-- 홍리안 -->
             <div class="todo-editor-card">
@@ -675,13 +791,14 @@
               <div class="step-badge">① 고정 할일에서 골라 담기 (터치해서 선택/해제)</div>
               <div id="fixedPicker_홍리안" class="fixed-pick-wrap"></div>
 
-              <div class="step-badge">② 홍리안 개별 할일 직접 입력 (key-in)</div>
+              <div class="step-badge">② 홍리안 개별 할일 직접 입력 (key-in) & 용돈</div>
               <div class="todo-add-row">
                 <input id="adminTodoInput_홍리안" type="text" placeholder="추가 할일 입력 (예: 수학 문제집 2장)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addTodoItem('홍리안'); }" />
+                <input id="adminTodoReward_홍리안" type="number" min="0" step="100" class="reward-mini-input" placeholder="용돈(원)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addTodoItem('홍리안'); }" />
                 <button type="button" class="todo-add-btn" onclick="addTodoItem('홍리안')">+ 추가</button>
               </div>
 
-              <div id="adminTodoChips_홍리안" class="todo-chips-wrap"></div>
+              <div id="adminTodoChips_홍리안" class="todo-assigned-list"></div>
             </div>
 
             <!-- 홍지운 -->
@@ -694,18 +811,19 @@
               <div class="step-badge">① 고정 할일에서 골라 담기 (터치해서 선택/해제)</div>
               <div id="fixedPicker_홍지운" class="fixed-pick-wrap"></div>
 
-              <div class="step-badge">② 홍지운 개별 할일 직접 입력 (key-in)</div>
+              <div class="step-badge">② 홍지운 개별 할일 직접 입력 (key-in) & 용돈</div>
               <div class="todo-add-row">
                 <input id="adminTodoInput_홍지운" type="text" placeholder="추가 할일 입력 (예: 장난감 정리하기)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addTodoItem('홍지운'); }" />
+                <input id="adminTodoReward_홍지운" type="number" min="0" step="100" class="reward-mini-input" placeholder="용돈(원)" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addTodoItem('홍지운'); }" />
                 <button type="button" class="todo-add-btn" onclick="addTodoItem('홍지운')">+ 추가</button>
               </div>
 
-              <div id="adminTodoChips_홍지운" class="todo-chips-wrap"></div>
+              <div id="adminTodoChips_홍지운" class="todo-assigned-list"></div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
               <span id="todoSaveStatus" style="font-size:11px; color:#64748b; font-weight:700;"></span>
-              <button type="button" class="todo-save-btn" onclick="saveDailyTodos()">💾 할일 목록 저장</button>
+              <button type="button" class="todo-save-btn" onclick="saveDailyTodos()">💾 할일·용돈 저장</button>
             </div>
           </div>
 
@@ -730,6 +848,17 @@
       </div>
     </div>
   </main>
+
+  <!-- 용돈 획득 축하 팝업 모달 -->
+  <div id="rewardEarnedModal" class="reward-modal-backdrop" onclick="closeRewardModal()">
+    <div class="reward-modal-card" onclick="event.stopPropagation()">
+      <div class="reward-badge-emoji">🎉💰</div>
+      <div id="rewardEarnedMain" class="reward-main-text">용돈 0원 획득!</div>
+      <div id="rewardEarnedSub" style="font-size:13px; font-weight:800; color:#78350f;">미션 완료를 축하해요!</div>
+      <div id="rewardEarnedList" class="reward-detail-box" style="display:none;"></div>
+      <button type="button" class="reward-ok-btn" onclick="closeRewardModal()">확인했어요! 👍</button>
+    </div>
+  </div>
 
   <!-- 확대 / QR 모달 -->
   <div id="popModal" class="modal" onclick="closePop()">
@@ -765,21 +894,52 @@
     const TARGET_PHOTO_BYTES = 78 * 1024;
 
     let mealData = null;
+    let initialMealPhotoSaved = null;
     let todoPhotosByIdx = [];
+    let initialTodoPhotosSaved = [];
     let todoSavedFlags = [];
     let currentKidTodoItems = [];
+    let currentKidTodoRewards = [];
+    let currentMealReward = 0;
 
-    // 고정 할일 마스터 목록
+    // 고정 할일 목록: [{ text: "이불 개기", reward: 500 }, ...]
     let fixedRoutineList = [];
-    // 각 아이별 선택된 고정 할일(Set처럼 배열 유지) & 직접 입력(key-in)한 개별 할일
+    // 각 아이별 선택된 고정 할일 & 직접 입력(key-in) 할일 및 항목별 용돈 맵
     let adminSelectedFixed = { 홍리안: [], 홍지운: [] };
     let adminCustomTodos = { 홍리안: [], 홍지운: [] };
+    let adminTodoRewards = { 홍리안: {}, 홍지운: {} };
+    let adminMealReward = 0;
 
     let adminOpen = false;
     let isSavingLock = false;
 
     let photoDatesMap = {};
     let settlementMap = {};
+
+    function formatWon(num) {
+      const n = Math.max(0, Number(num) || 0);
+      return n.toLocaleString("ko-KR") + "원";
+    }
+
+    function openRewardModal(earnedAmount, breakdownItems, kidName) {
+      document.getElementById("rewardEarnedMain").textContent = "용돈 " + formatWon(earnedAmount) + " 획득!";
+      document.getElementById("rewardEarnedSub").textContent = kidName + "의 새 미션 인증 완료!";
+      const listEl = document.getElementById("rewardEarnedList");
+      if (breakdownItems && breakdownItems.length > 0) {
+        listEl.style.display = "block";
+        listEl.innerHTML = breakdownItems.map(b =>
+          "• " + escapeHtml(b.label) + ": +" + formatWon(b.amount)
+        ).join("<br>");
+      } else {
+        listEl.style.display = "none";
+        listEl.innerHTML = "";
+      }
+      document.getElementById("rewardEarnedModal").style.display = "flex";
+    }
+
+    function closeRewardModal() {
+      document.getElementById("rewardEarnedModal").style.display = "none";
+    }
 
     function estimateUtf8Bytes(str) {
       if (!str) return 0;
@@ -828,7 +988,11 @@
 
     function normalizeTodoItems(raw) {
       if (Array.isArray(raw)) {
-        return raw.map(v => String(v || "").trim()).filter(Boolean);
+        return raw.map(v => {
+          if (typeof v === "string") return v.trim();
+          if (v && typeof v === "object" && v.text) return String(v.text).trim();
+          return "";
+        }).filter(Boolean);
       }
       if (typeof raw === "string" && raw.trim()) {
         return raw.split(/\n|,/).map(v => v.trim()).filter(Boolean);
@@ -836,7 +1000,32 @@
       return [];
     }
 
-    // 고정 할일 + 직접 입력(key-in) 할일을 순서대로 합쳐 최종 목록 반환
+    function normalizeFixedRoutines(raw) {
+      if (!Array.isArray(raw)) return [];
+      const result = [];
+      raw.forEach(item => {
+        if (typeof item === "string") {
+          const t = item.trim();
+          if (t && !result.some(r => r.text === t)) result.push({ text: t, reward: 0 });
+        } else if (item && typeof item === "object") {
+          const t = String(item.text || "").trim();
+          const rw = Math.max(0, Number(item.reward) || 0);
+          if (t && !result.some(r => r.text === t)) result.push({ text: t, reward: rw });
+        }
+      });
+      return result;
+    }
+
+    function getFixedRewardByText(text) {
+      const found = fixedRoutineList.find(r => r.text === text);
+      return found ? (Number(found.reward) || 0) : 0;
+    }
+
+    function updateKidMealRewardBadge() {
+      const el = document.getElementById("kidMealRewardBadge");
+      if (el) el.textContent = "+" + formatWon(currentMealReward);
+    }
+
     function getCombinedAdminTodoList(kidName) {
       const fixedSel = adminSelectedFixed[kidName] || [];
       const customSel = adminCustomTodos[kidName] || [];
@@ -853,12 +1042,12 @@
     function renderFixedMasterChips() {
       const el = document.getElementById("fixedMasterChips");
       if (!fixedRoutineList.length) {
-        el.innerHTML = "<span style='font-size:11px; color:#b45309;'>아직 등록된 고정 할일이 없습니다. 위 입력창에서 자주 쓰는 할일을 추가해 주세요.</span>";
+        el.innerHTML = "<span style='font-size:11px; color:#b45309;'>등록된 고정 할일이 없습니다. 위 입력창에서 자주 쓰는 할일과 용돈을 추가해 주세요.</span>";
         return;
       }
       el.innerHTML = fixedRoutineList.map((item, idx) =>
         "<span class='fixed-master-chip'>" +
-        "<span>⭐ " + escapeHtml(item) + "</span>" +
+        "<span>⭐ " + escapeHtml(item.text) + " (" + formatWon(item.reward) + ")</span>" +
         "<button type='button' class='fixed-master-del' title='고정 목록에서 삭제' onclick=\"removeFixedRoutineItem(" + idx + ")\">✕</button>" +
         "</span>"
       ).join("");
@@ -874,10 +1063,11 @@
         }
         const selectedSet = new Set(adminSelectedFixed[kidName] || []);
         el.innerHTML = fixedRoutineList.map(item => {
-          const isSel = selectedSet.has(item);
+          const isSel = selectedSet.has(item.text);
           const prefix = isSel ? "✓ " : "+ ";
-          return "<button type='button' class='fixed-pick-chip" + (isSel ? " selected" : "") + "' onclick=\"toggleFixedForKid('" + kidName + "', '" + escapeJsStr(item) + "')\">" +
-            prefix + escapeHtml(item) +
+          const rwText = item.reward > 0 ? (" · " + formatWon(item.reward)) : "";
+          return "<button type='button' class='fixed-pick-chip" + (isSel ? " selected" : "") + "' onclick=\"toggleFixedForKid('" + kidName + "', '" + escapeJsStr(item.text) + "')\">" +
+            prefix + escapeHtml(item.text) + rwText +
             "</button>";
         }).join("");
       });
@@ -885,31 +1075,49 @@
 
     function renderAdminTodoChips(kidName) {
       const combined = getCombinedAdminTodoList(kidName);
-      const fixedSet = new Set(fixedRoutineList);
+      const fixedSet = new Set(fixedRoutineList.map(r => r.text));
       const el = document.getElementById("adminTodoChips_" + kidName);
       if (!combined.length) {
         el.innerHTML = "<span style='font-size:11px; color:#94a3b8;'>선택되거나 입력된 할일이 없습니다.</span>";
         return;
       }
+      if (!adminTodoRewards[kidName]) adminTodoRewards[kidName] = {};
+
       el.innerHTML = combined.map((item, idx) => {
         const isFixed = fixedSet.has(item) && (adminSelectedFixed[kidName] || []).includes(item);
         const badge = isFixed ? "⭐ " : "";
-        return "<span class='todo-item-chip" + (isFixed ? " is-fixed" : "") + "'>" +
-          "<span>" + (idx + 1) + ". " + badge + escapeHtml(item) + "</span>" +
+        const rw = Math.max(0, Number(adminTodoRewards[kidName][item]) || 0);
+        return "<div class='todo-assigned-row" + (isFixed ? " is-fixed" : "") + "'>" +
+          "<span class='todo-assigned-name'>" + (idx + 1) + ". " + badge + escapeHtml(item) + "</span>" +
+          "<input type='number' min='0' step='100' class='todo-row-reward' value='" + rw + "' onchange=\"onRowRewardChange('" + kidName + "', '" + escapeJsStr(item) + "', this.value)\" />" +
+          "<span style='font-size:11px; font-weight:800; color:#6d28d9;'>원</span>" +
           "<button type='button' class='todo-chip-del' onclick=\"removeCombinedTodoItem('" + kidName + "', '" + escapeJsStr(item) + "')\">✕</button>" +
-          "</span>";
+          "</div>";
       }).join("");
+    }
+
+    function onRowRewardChange(kidName, item, val) {
+      if (!adminTodoRewards[kidName]) adminTodoRewards[kidName] = {};
+      adminTodoRewards[kidName][item] = Math.max(0, Number(val) || 0);
+    }
+
+    function onMealRewardChange() {
+      const val = document.getElementById("mealRewardInput").value;
+      adminMealReward = Math.max(0, Number(val) || 0);
     }
 
     function toggleFixedForKid(kidName, item) {
       if (!adminSelectedFixed[kidName]) adminSelectedFixed[kidName] = [];
+      if (!adminTodoRewards[kidName]) adminTodoRewards[kidName] = {};
       const idx = adminSelectedFixed[kidName].indexOf(item);
       if (idx >= 0) {
         adminSelectedFixed[kidName].splice(idx, 1);
       } else {
         adminSelectedFixed[kidName].push(item);
-        // 직접 입력 목록에 중복이 있으면 제거
         adminCustomTodos[kidName] = (adminCustomTodos[kidName] || []).filter(v => v !== item);
+        if (typeof adminTodoRewards[kidName][item] === "undefined") {
+          adminTodoRewards[kidName][item] = getFixedRewardByText(item);
+        }
       }
       renderFixedPickersForAllKids();
       renderAdminTodoChips(kidName);
@@ -920,32 +1128,46 @@
         alert("먼저 위 노란 상자에서 고정 할일을 등록해 주세요.");
         return;
       }
-      adminSelectedFixed[kidName] = [...fixedRoutineList];
-      const fixedSet = new Set(fixedRoutineList);
+      if (!adminTodoRewards[kidName]) adminTodoRewards[kidName] = {};
+      adminSelectedFixed[kidName] = fixedRoutineList.map(r => r.text);
+      const fixedSet = new Set(adminSelectedFixed[kidName]);
       adminCustomTodos[kidName] = (adminCustomTodos[kidName] || []).filter(v => !fixedSet.has(v));
+      fixedRoutineList.forEach(r => {
+        if (typeof adminTodoRewards[kidName][r.text] === "undefined") {
+          adminTodoRewards[kidName][r.text] = Math.max(0, Number(r.reward) || 0);
+        }
+      });
       renderFixedPickersForAllKids();
       renderAdminTodoChips(kidName);
     }
 
     function addTodoItem(kidName) {
       const input = document.getElementById("adminTodoInput_" + kidName);
+      const rewardInput = document.getElementById("adminTodoReward_" + kidName);
       if (!input) return;
       const parts = input.value.split(/\n|,/).map(s => s.trim()).filter(Boolean);
       if (!parts.length) return;
+      const enteredReward = rewardInput ? Math.max(0, Number(rewardInput.value) || 0) : 0;
+
       if (!adminCustomTodos[kidName]) adminCustomTodos[kidName] = [];
       if (!adminSelectedFixed[kidName]) adminSelectedFixed[kidName] = [];
+      if (!adminTodoRewards[kidName]) adminTodoRewards[kidName] = {};
 
       parts.forEach(p => {
-        if (fixedRoutineList.includes(p)) {
+        const fixedRw = getFixedRewardByText(p);
+        const finalRw = rewardInput && rewardInput.value !== "" ? enteredReward : fixedRw;
+        if (fixedRoutineList.some(r => r.text === p)) {
           if (!adminSelectedFixed[kidName].includes(p)) {
             adminSelectedFixed[kidName].push(p);
           }
         } else if (!adminCustomTodos[kidName].includes(p)) {
           adminCustomTodos[kidName].push(p);
         }
+        adminTodoRewards[kidName][p] = Math.max(0, Number(finalRw) || 0);
       });
 
       input.value = "";
+      if (rewardInput) rewardInput.value = "";
       renderFixedPickersForAllKids();
       renderAdminTodoChips(kidName);
     }
@@ -959,29 +1181,39 @@
 
     async function addFixedRoutineItem() {
       const input = document.getElementById("fixedRoutineInput");
+      const rewardInput = document.getElementById("fixedRoutineRewardInput");
       if (!input) return;
       const parts = input.value.split(/\n|,/).map(s => s.trim()).filter(Boolean);
       if (!parts.length) return;
+      const rw = rewardInput ? Math.max(0, Number(rewardInput.value) || 0) : 0;
+
       parts.forEach(p => {
-        if (!fixedRoutineList.includes(p)) {
-          fixedRoutineList.push(p);
+        const existing = fixedRoutineList.find(r => r.text === p);
+        if (existing) {
+          existing.reward = rw;
+        } else {
+          fixedRoutineList.push({ text: p, reward: rw });
         }
       });
+
       input.value = "";
+      if (rewardInput) rewardInput.value = "";
       renderFixedMasterChips();
       renderFixedPickersForAllKids();
       if (window.fbSaveFixedRoutines) await window.fbSaveFixedRoutines();
     }
 
     async function removeFixedRoutineItem(idx) {
-      const removed = fixedRoutineList[idx];
+      const removedObj = fixedRoutineList[idx];
+      if (!removedObj) return;
+      const removedText = removedObj.text;
       fixedRoutineList.splice(idx, 1);
-      // 고정 목록에서 빠진 항목이 아이별 선택 목록에 있었다면 개별 할일로 자연스럽게 이관
+
       KIDS.forEach(kidName => {
-        if ((adminSelectedFixed[kidName] || []).includes(removed)) {
-          adminSelectedFixed[kidName] = adminSelectedFixed[kidName].filter(v => v !== removed);
-          if (!(adminCustomTodos[kidName] || []).includes(removed)) {
-            adminCustomTodos[kidName].unshift(removed);
+        if ((adminSelectedFixed[kidName] || []).includes(removedText)) {
+          adminSelectedFixed[kidName] = adminSelectedFixed[kidName].filter(v => v !== removedText);
+          if (!(adminCustomTodos[kidName] || []).includes(removedText)) {
+            adminCustomTodos[kidName].unshift(removedText);
           }
         }
         renderAdminTodoChips(kidName);
@@ -1027,14 +1259,19 @@
       updateTodoOverallState();
     }
 
-    function renderKidTodoSlots(items, existingTodoPhotos, legacyTodoPhoto) {
+    function renderKidTodoSlots(items, rewards, existingTodoPhotos, legacyTodoPhoto) {
       currentKidTodoItems = normalizeTodoItems(items);
       const slotCount = currentKidTodoItems.length > 0 ? currentKidTodoItems.length : 1;
 
+      currentKidTodoRewards = [];
       todoPhotosByIdx = [];
+      initialTodoPhotosSaved = [];
       todoSavedFlags = [];
 
       for (let i = 0; i < slotCount; i++) {
+        const rw = Array.isArray(rewards) ? Math.max(0, Number(rewards[i]) || 0) : 0;
+        currentKidTodoRewards.push(rw);
+
         let photo = null;
         if (Array.isArray(existingTodoPhotos) && existingTodoPhotos[i]) {
           photo = existingTodoPhotos[i];
@@ -1042,6 +1279,7 @@
           photo = legacyTodoPhoto;
         }
         todoPhotosByIdx.push(photo);
+        initialTodoPhotosSaved.push(photo || null);
         todoSavedFlags.push(!!photo);
       }
 
@@ -1052,10 +1290,11 @@
         const taskLabel = currentKidTodoItems[i]
           ? ("할일 " + (i + 1) + ": " + escapeHtml(currentKidTodoItems[i]))
           : "오늘의 할일 인증 (지정된 할일 없음)";
+        const rwBadge = "<span class='reward-pill'>+" + formatWon(currentKidTodoRewards[i] || 0) + "</span>";
 
         html += "<div class='todo-sub-card'>" +
           "<div class='todo-sub-header'>" +
-          "<span class='todo-sub-title'>" + taskLabel + "</span>" +
+          "<span class='todo-sub-title'>" + taskLabel + " " + rwBadge + "</span>" +
           "<span id='todoItemState_" + i + "' style='font-size:11px; font-weight:800; color:#94a3b8; white-space:nowrap;'>미등록</span>" +
           "</div>" +
           "<div class='mission-grid'>" +
@@ -1304,8 +1543,9 @@
     function onKidContextChange() {
       if (isSavingLock) return;
       mealData = null;
+      initialMealPhotoSaved = null;
       setMealPreview(null);
-      renderKidTodoSlots([], [], null);
+      renderKidTodoSlots([], [], [], null);
       if (window.fbLoadKidData) window.fbLoadKidData();
     }
 
@@ -1437,28 +1677,42 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function fetchFixedRoutines() {
+    async function fetchFixedRoutinesDoc() {
       const snap = await getDoc(doc(db, "daily_todos", "fixed_routines"));
-      if (!snap.exists()) return [];
-      return normalizeTodoItems(snap.data().items);
+      if (!snap.exists()) return { routines: [], mealReward: 0 };
+      const data = snap.data();
+      return {
+        routines: normalizeFixedRoutines(data.items),
+        mealReward: Math.max(0, Number(data.mealReward) || 0)
+      };
     }
 
     window.fbSaveFixedRoutines = async function() {
+      onMealRewardChange();
       await setDoc(doc(db, "daily_todos", "fixed_routines"), {
-        items: normalizeTodoItems(fixedRoutineList),
+        items: normalizeFixedRoutines(fixedRoutineList),
+        mealReward: adminMealReward,
         updatedAt: new Date().toISOString()
       }, { merge: true });
       const st = document.getElementById("fixedRoutineStatus");
-      if (st) st.textContent = "고정 목록 저장됨";
+      if (st) st.textContent = "고정·용돈 설정 저장됨";
     };
 
     async function fetchTodoForDate(dateStr) {
       const snap = await getDoc(doc(db, "daily_todos", dateStr));
-      if (!snap.exists()) return { 홍리안: [], 홍지운: [] };
+      if (!snap.exists()) {
+        return { 홍리안: [], 홍지운: [], rewards: { 홍리안: [], 홍지운: [] }, mealReward: null };
+      }
       const data = snap.data();
+      const rewardsRaw = data.rewards || {};
       return {
         홍리안: normalizeTodoItems(data["홍리안"]),
-        홍지운: normalizeTodoItems(data["홍지운"])
+        홍지운: normalizeTodoItems(data["홍지운"]),
+        rewards: {
+          홍리안: Array.isArray(rewardsRaw["홍리안"]) ? rewardsRaw["홍리안"].map(n => Math.max(0, Number(n) || 0)) : [],
+          홍지운: Array.isArray(rewardsRaw["홍지운"]) ? rewardsRaw["홍지운"].map(n => Math.max(0, Number(n) || 0)) : []
+        },
+        mealReward: typeof data.mealReward !== "undefined" && data.mealReward !== null ? Math.max(0, Number(data.mealReward) || 0) : null
       };
     }
 
@@ -1466,8 +1720,14 @@
       const name = document.getElementById("childSelect").value;
       const targetDate = getSelectedKidDate();
       try {
+        const fixedDoc = await fetchFixedRoutinesDoc();
         const todoDoc = await fetchTodoForDate(targetDate);
+
+        currentMealReward = todoDoc.mealReward !== null ? todoDoc.mealReward : fixedDoc.mealReward;
+        updateKidMealRewardBadge();
+
         const assignedItems = todoDoc[name] || [];
+        const assignedRewards = todoDoc.rewards[name] || [];
 
         const snap = await getDoc(doc(db, "morning_missions", targetDate + "_" + name));
         const d = snap.exists() ? snap.data() : null;
@@ -1476,16 +1736,22 @@
           ? assignedItems
           : normalizeTodoItems(d && d.todoItems);
 
+        const effectiveRewards = assignedItems.length
+          ? assignedRewards
+          : (Array.isArray(d && d.todoRewards) ? d.todoRewards : []);
+
         const existingTodoPhotos = Array.isArray(d && d.todoPhotos) ? d.todoPhotos : [];
         const legacyTodoPhoto = (d && d.todoPhoto) || null;
 
-        renderKidTodoSlots(effectiveItems, existingTodoPhotos, legacyTodoPhoto);
+        renderKidTodoSlots(effectiveItems, effectiveRewards, existingTodoPhotos, legacyTodoPhoto);
 
         if (d && d.mealPhoto) {
           mealData = d.mealPhoto;
+          initialMealPhotoSaved = d.mealPhoto;
           setMealPreview(d.mealPhoto, "저장됨");
         } else {
           mealData = null;
+          initialMealPhotoSaved = null;
           setMealPreview(null);
         }
 
@@ -1504,14 +1770,39 @@
       const targetDate = getSelectedKidDate();
       try {
         const cleanTodoPhotos = todoPhotosByIdx.map(p => p || null);
+
+        // 새로 등록/변경된 사진 항목에 대해서만 획득 용돈 계산
+        let earnedTotal = 0;
+        const earnedBreakdown = [];
+
+        if (mealData && mealData !== initialMealPhotoSaved) {
+          earnedTotal += currentMealReward;
+          earnedBreakdown.push({ label: "아침밥 완료", amount: currentMealReward });
+        }
+
+        for (let i = 0; i < cleanTodoPhotos.length; i++) {
+          const curPhoto = cleanTodoPhotos[i];
+          const prevPhoto = initialTodoPhotosSaved[i] || null;
+          if (curPhoto && curPhoto !== prevPhoto) {
+            const rw = Math.max(0, Number(currentKidTodoRewards[i]) || 0);
+            const taskName = currentKidTodoItems[i]
+              ? ("할일 " + (i + 1) + ": " + currentKidTodoItems[i])
+              : ("할일 " + (i + 1));
+            earnedTotal += rw;
+            earnedBreakdown.push({ label: taskName, amount: rw });
+          }
+        }
+
         const payload = {
           date: targetDate,
           childName: name,
           mealPhoto: mealData || null,
+          mealReward: currentMealReward,
           studyPhoto: null,
           todoPhotos: cleanTodoPhotos,
           todoPhoto: cleanTodoPhotos[0] || null,
           todoItems: currentKidTodoItems,
+          todoRewards: currentKidTodoRewards,
           updatedAt: new Date().toISOString()
         };
 
@@ -1530,6 +1821,8 @@
           await setDoc(settleRef, { date: targetDate, settled: false });
         }
 
+        initialMealPhotoSaved = mealData || null;
+        initialTodoPhotosSaved = [...cleanTodoPhotos];
         if (mealData) setMealPreview(mealData, "저장됨");
         todoSavedFlags = cleanTodoPhotos.map(p => !!p);
         for (let i = 0; i < todoPhotosByIdx.length; i++) {
@@ -1537,7 +1830,7 @@
         }
 
         hideCuteLoading();
-        alert(targetDate + " " + name + "의 사진이 저장되었습니다!");
+        openRewardModal(earnedTotal, earnedBreakdown, name);
       } catch (e) {
         hideCuteLoading();
         alert("저장 오류: " + e.message);
@@ -1548,21 +1841,31 @@
       const dateStr = document.getElementById("adminDate").value;
       if (!dateStr) return;
 
-      // 입력창에 미처 '+ 추가' 안 누른 텍스트가 남아 있으면 자동 반영
       addTodoItem("홍리안");
       addTodoItem("홍지운");
+      onMealRewardChange();
 
       const rianItems = getCombinedAdminTodoList("홍리안");
       const jiwoonItems = getCombinedAdminTodoList("홍지운");
 
+      const rianRewards = rianItems.map(item => Math.max(0, Number((adminTodoRewards["홍리안"] || {})[item]) || 0));
+      const jiwoonRewards = jiwoonItems.map(item => Math.max(0, Number((adminTodoRewards["홍지운"] || {})[item]) || 0));
+
       await setDoc(doc(db, "daily_todos", dateStr), {
         date: dateStr,
-        홍리안: rianItems,
-        홍지운: jiwoonItems,
+        mealReward: adminMealReward,
+        "홍리안": rianItems,
+        "홍지운": jiwoonItems,
+        rewards: {
+          "홍리안": rianRewards,
+          "홍지운": jiwoonRewards
+        },
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
-      document.getElementById("todoSaveStatus").textContent = "✅ " + dateStr + " 할일 목록이 저장되었습니다.";
+      await window.fbSaveFixedRoutines();
+
+      document.getElementById("todoSaveStatus").textContent = "✅ " + dateStr + " 할일·용돈이 저장되었습니다.";
       await window.fbLoadAdminDate(dateStr);
       if (dateStr === getSelectedKidDate() && window.fbLoadKidData) {
         await window.fbLoadKidData();
@@ -1598,7 +1901,10 @@
     }
 
     window.fbLoadAdmin = async function() {
-      fixedRoutineList = await fetchFixedRoutines();
+      const fixedDoc = await fetchFixedRoutinesDoc();
+      fixedRoutineList = fixedDoc.routines;
+      adminMealReward = fixedDoc.mealReward;
+      document.getElementById("mealRewardInput").value = adminMealReward;
       renderFixedMasterChips();
 
       await refreshCalendarMaps();
@@ -1627,18 +1933,32 @@
       if (!dateStr) return;
       updateSettleButtonUI(dateStr);
 
-      if (!fixedRoutineList.length) {
-        fixedRoutineList = await fetchFixedRoutines();
+      const fixedDoc = await fetchFixedRoutinesDoc();
+      if (!fixedRoutineList.length && fixedDoc.routines.length) {
+        fixedRoutineList = fixedDoc.routines;
         renderFixedMasterChips();
       }
 
       const todoDoc = await fetchTodoForDate(dateStr);
-      const fixedSet = new Set(fixedRoutineList);
+      adminMealReward = todoDoc.mealReward !== null ? todoDoc.mealReward : fixedDoc.mealReward;
+      document.getElementById("mealRewardInput").value = adminMealReward;
+
+      const fixedSet = new Set(fixedRoutineList.map(r => r.text));
 
       KIDS.forEach(kidName => {
         const savedList = todoDoc[kidName] || [];
+        const savedRewards = todoDoc.rewards[kidName] || [];
         adminSelectedFixed[kidName] = savedList.filter(item => fixedSet.has(item));
         adminCustomTodos[kidName] = savedList.filter(item => !fixedSet.has(item));
+        const rwMap = {};
+        savedList.forEach((item, idx) => {
+          if (typeof savedRewards[idx] !== "undefined") {
+            rwMap[item] = Math.max(0, Number(savedRewards[idx]) || 0);
+          } else {
+            rwMap[item] = getFixedRewardByText(item);
+          }
+        });
+        adminTodoRewards[kidName] = rwMap;
       });
 
       renderFixedPickersForAllKids();
@@ -1647,8 +1967,8 @@
 
       const hasAnySaved = (todoDoc["홍리안"] || []).length || (todoDoc["홍지운"] || []).length;
       document.getElementById("todoSaveStatus").textContent = hasAnySaved
-        ? "현재 저장된 할일 목록이 불러와졌습니다."
-        : "① 고정 할일을 선택하고 ② 추가 할일을 입력해 주세요.";
+        ? "현재 저장된 할일·용돈이 불러와졌습니다."
+        : "① 고정 할일을 선택하고 ② 추가 할일과 용돈을 입력해 주세요.";
 
       let html = "";
       for (const name of KIDS) {
@@ -1657,6 +1977,9 @@
         const assignedItems = (todoDoc[name] && todoDoc[name].length)
           ? todoDoc[name]
           : normalizeTodoItems(d && d.todoItems);
+        const assignedRewards = (todoDoc[name] && todoDoc[name].length)
+          ? todoDoc.rewards[name]
+          : (Array.isArray(d && d.todoRewards) ? d.todoRewards : []);
 
         const savedTodoPhotos = Array.isArray(d && d.todoPhotos) ? d.todoPhotos : [];
         const legacyPhoto = (d && d.todoPhoto) || null;
@@ -1672,7 +1995,7 @@
         html += "</div>";
 
         html += "<div style='margin-bottom:12px;'>";
-        html += "<div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 1. 밥 사진</div>";
+        html += "<div style='font-size:12px; font-weight:800; color:#ea580c; margin-bottom:4px;'>🍚 1. 밥 사진 (" + formatWon(adminMealReward) + ")</div>";
         if (d && d.mealPhoto) {
           html += "<img src='" + d.mealPhoto + "' onclick=\"openAdminImg('" + dateStr + " " + name + " 밥 사진','" + d.mealPhoto + "')\" style='width:100%; max-width:220px; height:115px; object-fit:cover; border-radius:10px; cursor:pointer;' />";
         } else {
@@ -1688,9 +2011,10 @@
         } else {
           html += "<div class='admin-todo-photo-grid'>";
           for (let i = 0; i < photoCount; i++) {
+            const rw = Math.max(0, Number(assignedRewards[i]) || 0);
             const taskName = assignedItems[i]
-              ? ("할일 " + (i + 1) + ": " + assignedItems[i])
-              : ("할일 " + (i + 1));
+              ? ("할일 " + (i + 1) + ": " + assignedItems[i] + " (" + formatWon(rw) + ")")
+              : ("할일 " + (i + 1) + " (" + formatWon(rw) + ")");
             const pSrc = savedTodoPhotos[i] || (i === 0 ? legacyPhoto : null);
             const safeTitle = escapeHtml(dateStr + " " + name + " - " + taskName);
 
